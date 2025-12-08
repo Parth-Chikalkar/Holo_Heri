@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 
 const SiteSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+
   title: { type: String, required: true },
   location: { type: String },
   thumb: { type: String },

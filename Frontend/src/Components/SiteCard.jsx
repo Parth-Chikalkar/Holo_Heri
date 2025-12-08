@@ -7,8 +7,26 @@ import { useNavigate } from "react-router-dom";
 export default function SiteCard({ site }) {
   const nav = useNavigate();
 
+   const getFileUrl = (path) => {
+      if (!path) return "";
+  
+      // 1. If it's a "localhost:3000" URL from the DB, force it to 4000
+      if (path.includes("localhost:3000")) {
+        return path.replace("3000", "4000");
+      }
+  
+      // 2. If it's already a full valid URL (Cloudinary or corrected Local), use it
+      if (path.startsWith("http") || path.startsWith("https")) {
+        return path;
+      }
+  
+      // 3. If it's a relative path (e.g. "uploads/file.png"), prepend the Env Variable
+      // This uses the value from Step 1 (http://localhost:4000)
+      return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/^\//, "")}`;
+    };
+
   function openViewer() {
-  nav(`/viewer/${site.id}`);
+  nav(`/viewer/${site._id}`);
 }
 
 
@@ -34,7 +52,7 @@ export default function SiteCard({ site }) {
       {/* Image Container: Kept elevated look, removed scale on image */}
       <div className="relative rounded-xl overflow-hidden shadow-md border-2 border-amber-300">
         <img 
-          src={site.thumb} 
+          src={getFileUrl(site.thumb)} 
           alt={site.title} 
           // Removed hover:scale-105 here
           className="w-full h-48 object-cover object-top transition-transform duration-500" 
