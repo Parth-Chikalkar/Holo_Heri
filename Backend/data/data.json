@@ -1,0 +1,52 @@
+[
+  {
+    "id": "ajanta",
+    "title": "Ajanta Caves",
+    "location": "Aurangabad, Maharashtra",
+    "thumb": "/assets/thumbs/demo2.png",
+    "summary": "Ancient rock-cut Buddhist cave monuments known for murals and sculptures.",
+    "tags": ["Buddhist", "Cave", "Murals"],
+    "glb": "",
+    "video": "/assets/videos/ajanta_4way.mp4"
+  },
+  {
+    "id": "ellora",
+    "title": "Ellora Caves",
+    "location": "Aurangabad, Maharashtra",
+    "thumb": "/assets/thumbs/demo3.png",
+    "summary": "Monolithic temples carved from rock, dedicated to Hindu, Buddhist, and Jain traditions.",
+    "tags": ["Temple", "Monolithic"],
+    "glb": "",
+    "video": "/assets/videos/ellora_4way.mp4"
+  },
+  {
+    "id": "tajmahal",
+    "title": "Taj Mahal",
+    "location": "Agra, Uttar Pradesh",
+    "thumb": "/assets/thumbs/demo.png",
+    "summary": "A UNESCO World Heritage Site...",
+    "tags": ["Mughal", "Marble", "Monument"],
+    "glb": "",
+    "video": "/assets/videos/tajmahal_4way.mp4"
+  },
+  {
+    "id": "konark",
+    "title": "Konark Temple",
+    "location": "Puri, Odisha",
+    "thumb": "/assets/thumbs/demo4.png",
+    "summary": "A 13th-century CE Sun Temple...",
+    "tags": ["Temple", "Sun Temple", "Kalinga Architecture"],
+    "glb": "",
+    "video": "/assets/videos/konark_4way.mp4"
+  },
+  {
+    "id": "rammandir",
+    "title": "Ram Mandir",
+    "location": "Ayodhya, Uttar Pradesh",
+    "thumb": "/assets/thumbs/ram.png",
+    "summary": "A newly constructed grand Hindu temple...",
+    "tags": ["Temple", "Hindu", "Nagara Architecture"],
+    "glb": "",
+    "video": "/assets/videos/rammandir_4way.mp4"
+  }
+]

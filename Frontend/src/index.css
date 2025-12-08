@@ -1,0 +1,30 @@
+@import "tailwindcss";
+/* ------------------------------- */
+/*  Fancy Scrollbar (Gold Theme)   */
+/* ------------------------------- */
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #b7791f #fef3c7; /* Firefox */
+}
+
+/* Chrome, Edge, Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #fef3c7;       /* amber-100 */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #d97706, #b45309);
+  border-radius: 10px;
+  border: 2px solid #fef3c7; /* padding effect */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #f59e0b, #c2410c);
+  cursor: grab;
+}
