@@ -182,10 +182,8 @@ export default function SiteDetails() {
               loading="eager" 
               reveal="auto"
             >
-                {/* ✅ FIX 3: Restore the Loading Bar */}
-                <div slot="progress-bar" className="w-full h-1 bg-gray-200 absolute top-0 left-0">
-                    <div className="h-full bg-orange-500 transition-all duration-300" style={{width: "100%"}}></div>
-                </div>
+              
+                
             </ModelViewer>
           </motion.div>
         </motion.div>
@@ -239,6 +237,93 @@ export default function SiteDetails() {
 
         </motion.div>
       </div>
+
+      {/* ======================= TIME TRAVEL SECTION ======================= */}
+      {/* Renders only if at least one photo or description exists */}
+      {(site.oldSitePhoto || site.newSitePhoto || site.oldStructureDesc || site.newStructureDesc) && (
+        <div className="max-w-7xl mx-auto px-4 mt-5  mb-10 relative z-10 pb-20">
+            
+            {/* Section Title */}
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="text-center mb-16"
+            >
+                <h2 className="text-4xl md:text-5xl font-serif font-extrabold text-red-900 mb-4 drop-shadow-sm">
+                    <span className="text-yellow-700">Time Travel:</span> Then vs. Now
+                </h2>
+                <div className="h-1 w-32 bg-gradient-to-r from-yellow-500 to-orange-600 mx-auto rounded-full"></div>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-12">
+                
+                {/* ⏳ PAST CARD */}
+                <motion.div 
+                    initial={{ opacity: 0, x: -50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, type: "spring" }}
+                    className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-gray-500 relative group overflow-hidden"
+                >
+                    <div className="absolute top-0 left-0 bg-gray-600 text-white px-6 py-2 rounded-br-2xl font-bold z-20 shadow-md">
+                        PAST
+                    </div>
+                    
+                    {/* Image Container with Vintage Sepia Effect */}
+                    <div className="h-72 rounded-2xl overflow-hidden mb-6 border-4 border-gray-200 group-hover:border-gray-400 transition-colors relative">
+                        {site.oldSitePhoto ? (
+                            <img 
+                                src={getFileUrl(site.oldSitePhoto)} 
+                                alt="Historical View" 
+                                className="w-full h-full object-cover filter sepia contrast-125 group-hover:sepia-0 transition-all duration-700 transform group-hover:scale-110" 
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 italic">No Historical Photo Available</div>
+                        )}
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4 font-serif">Historical Structure</h3>
+                    <p className="text-gray-700 leading-relaxed italic border-l-4 border-gray-300 pl-4">
+                        "{site.oldStructureDesc || "No historical description provided."}"
+                    </p>
+                </motion.div>
+
+                {/* 🚀 PRESENT CARD */}
+                <motion.div 
+                    initial={{ opacity: 0, x: 50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, type: "spring", delay: 0.2 }}
+                    className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-orange-500 relative group overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 bg-orange-600 text-white px-6 py-2 rounded-bl-2xl font-bold z-20 shadow-md">
+                        PRESENT
+                    </div>
+
+                    {/* Image Container */}
+                    <div className="h-72 rounded-2xl overflow-hidden mb-6 border-4 border-orange-200 group-hover:border-orange-400 transition-colors">
+                        {site.newSitePhoto ? (
+                            <img 
+                                src={getFileUrl(site.newSitePhoto)} 
+                                alt="Modern View" 
+                                className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-110" 
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-500 italic">No Modern Photo Available</div>
+                        )}
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-orange-900 mb-4 font-serif">Current State</h3>
+                    <p className="text-gray-700 leading-relaxed border-l-4 border-orange-300 pl-4">
+                        {site.newStructureDesc || "No modern description provided."}
+                    </p>
+                </motion.div>
+
+            </div>
+        </div>
+      )}
     </section>
   );
 }

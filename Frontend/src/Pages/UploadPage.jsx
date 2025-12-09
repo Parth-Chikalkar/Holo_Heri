@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Save, FileBox, Image as ImageIcon, MapPin, Tag, BookOpen, Clock, PenTool, ShieldCheck, Zap } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast"; // 1. Import Toast
+import { Save, FileBox, Image as ImageIcon, MapPin, Tag, BookOpen, Clock, PenTool, ShieldCheck, Zap, History } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast"; 
 import Mandala from "../assets/indMan.png"; 
 import NavBar from "../Components/Navbar";
 import api from "../API/api"; 
@@ -12,6 +12,9 @@ export default function UploadPage() {
   // Refs to manually clear file inputs after submit
   const thumbInputRef = useRef(null);
   const glbInputRef = useRef(null);
+  // NEW REFS
+  const oldPhotoRef = useRef(null);
+  const newPhotoRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -22,11 +25,17 @@ export default function UploadPage() {
     architecture: "",
     conservation: "",
     modernRelevance: "",
+    // NEW FIELDS
+    oldStructureDesc: "",
+    newStructureDesc: ""
   });
 
   const [files, setFiles] = useState({
     thumb: null,
-    glb: null
+    glb: null,
+    // NEW FILES
+    oldSitePhoto: null,
+    newSitePhoto: null
   });
 
   const handleChange = (e) => {
@@ -37,13 +46,13 @@ export default function UploadPage() {
     setFiles({ ...files, [e.target.name]: e.target.files[0] });
   };
 
-  // --- IMPROVED SUBMIT HANDLER ---
+  // --- SUBMIT HANDLER ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
     
     setLoading(true);
-    const toastId = toast.loading("Starting upload... (This may take a minute for large models)");
+    const toastId = toast.loading("Starting upload... (This may take a minute)");
 
     try {
       const data = new FormData();
@@ -56,26 +65,30 @@ export default function UploadPage() {
       // Append files
       if (files.thumb) data.append('thumb', files.thumb);
       if (files.glb) data.append('glb', files.glb);
+      // Append NEW files
+      if (files.oldSitePhoto) data.append('oldSitePhoto', files.oldSitePhoto);
+      if (files.newSitePhoto) data.append('newSitePhoto', files.newSitePhoto);
 
       // Send Request
       const response = await api.post('sites', data, {
-        timeout: 600000 // 10 minutes timeout for large files
+        timeout: 600000 
       });
 
       if (response.data) {
-        // 2. Success Feedback
         toast.success("Site uploaded successfully!", { id: toastId });
         
-        // 3. Reset Form State
+        // Reset Form State
         setFormData({
             title: "", location: "", summary: "", tags: "",
             history: "", architecture: "", conservation: "", modernRelevance: "",
+            oldStructureDesc: "", newStructureDesc: ""
         });
-        setFiles({ thumb: null, glb: null });
+        setFiles({ thumb: null, glb: null, oldSitePhoto: null, newSitePhoto: null });
 
-        // 4. Clear File Inputs Visually
-        if(thumbInputRef.current) thumbInputRef.current.value = "";
-        if(glbInputRef.current) glbInputRef.current.value = "";
+        // Clear File Inputs Visually
+        [thumbInputRef, glbInputRef, oldPhotoRef, newPhotoRef].forEach(ref => {
+            if(ref.current) ref.current.value = "";
+        });
       }
 
     } catch (error) {
@@ -83,7 +96,6 @@ export default function UploadPage() {
       const msg = error.response?.data?.message || "Upload failed. Check connection.";
       toast.error(msg, { id: toastId });
     } finally {
-      // 5. CRITICAL: Stop loading spinner
       setLoading(false); 
     }
   };
@@ -106,7 +118,6 @@ export default function UploadPage() {
 
   return (
     <>
-      {/* 6. Add Toaster Component */}
       <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
       
       <NavBar/>
@@ -200,7 +211,7 @@ export default function UploadPage() {
                     <input 
                         type="file" 
                         name="thumb" 
-                        ref={thumbInputRef} // Attached Ref
+                        ref={thumbInputRef} 
                         onChange={handleFileChange} 
                         accept="image/*" 
                         className="absolute inset-0 opacity-0 cursor-pointer" 
@@ -215,7 +226,7 @@ export default function UploadPage() {
                     <input 
                         type="file" 
                         name="glb" 
-                        ref={glbInputRef} // Attached Ref
+                        ref={glbInputRef} 
                         onChange={handleFileChange} 
                         accept=".glb,.gltf" 
                         className="absolute inset-0 opacity-0 cursor-pointer" 
@@ -264,8 +275,80 @@ export default function UploadPage() {
                 </div>
                </motion.div>
             </div>
-
           </div>
+
+          {/* --- NEW SECTION: THEN vs NOW --- */}
+          <motion.div variants={itemVariants} className="mt-10 pt-6 border-t border-orange-200">
+             <h3 className="text-xl font-bold text-red-900 mb-6 flex items-center gap-2">
+                 <History className="w-5 h-5 text-yellow-600"/> Time Travel: Then vs. Now
+             </h3>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 {/* PAST SECTION */}
+                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 shadow-sm">
+                     <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                         <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded text-xs">PAST</span> 
+                         Historical Structure
+                     </h4>
+                     
+                     {/* Old Photo Upload */}
+                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 mb-4 text-center relative hover:bg-gray-100 transition cursor-pointer">
+                         <input 
+                             type="file" 
+                             name="oldSitePhoto" 
+                             ref={oldPhotoRef} 
+                             onChange={handleFileChange} 
+                             accept="image/*" 
+                             className="absolute inset-0 opacity-0 cursor-pointer" 
+                         />
+                         <ImageIcon className="w-6 h-6 mx-auto text-gray-400 mb-1"/>
+                         <p className="text-sm font-medium text-gray-500">{files.oldSitePhoto?.name || "Upload Historical Photo 📸"}</p>
+                     </div>
+                     
+                     {/* Old Description */}
+                     <textarea 
+                         name="oldStructureDesc" 
+                         placeholder="Describe how the site looked in the past..." 
+                         value={formData.oldStructureDesc} 
+                         onChange={handleChange} 
+                         className="w-full p-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-400 outline-none bg-white" 
+                         rows="3"
+                     />
+                 </div>
+
+                 {/* PRESENT SECTION */}
+                 <div className="p-5 bg-orange-50 rounded-2xl border border-orange-200 shadow-sm">
+                     <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+                         <span className="bg-orange-200 text-orange-700 px-2 py-0.5 rounded text-xs">PRESENT</span> 
+                         Current State
+                     </h4>
+                     
+                     {/* New Photo Upload */}
+                     <div className="border-2 border-dashed border-orange-300 rounded-xl p-4 mb-4 text-center relative hover:bg-orange-100 transition cursor-pointer">
+                         <input 
+                             type="file" 
+                             name="newSitePhoto" 
+                             ref={newPhotoRef} 
+                             onChange={handleFileChange} 
+                             accept="image/*" 
+                             className="absolute inset-0 opacity-0 cursor-pointer" 
+                         />
+                         <ImageIcon className="w-6 h-6 mx-auto text-orange-400 mb-1"/>
+                         <p className="text-sm font-medium text-orange-600">{files.newSitePhoto?.name || "Upload Current Photo 📸"}</p>
+                     </div>
+                     
+                     {/* New Description */}
+                     <textarea 
+                         name="newStructureDesc" 
+                         placeholder="Describe the site's condition today..." 
+                         value={formData.newStructureDesc} 
+                         onChange={handleChange} 
+                         className="w-full p-3 text-sm border border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none bg-white" 
+                         rows="3"
+                     />
+                 </div>
+             </div>
+          </motion.div>
 
           <motion.div variants={itemVariants} className="mt-10 flex justify-end">
              <motion.button

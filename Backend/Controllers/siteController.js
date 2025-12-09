@@ -11,26 +11,39 @@ const toInt = (v, d = 0) => {
 /* 1. CREATE SITE (Local Storage) */
 exports.createSite = async (req, res, next) => {
   try {
-    
     const payload = req.body;
 
     if (!payload.title) {
       return res.status(400).json({ message: 'Title is required' });
     }
 
+    // Initialize all file URLs as empty strings
     let thumbUrl = "";
     let glbUrl = "";
+    let oldSiteUrl = "";
+    let newSiteUrl = "";
     
-    // ⚠️ IMPORTANT: Change 'localhost' to your IP if testing on mobile/other devices
-    const BASE_URL = "http://localhost:3000/"; 
+    // ⚠️ UPDATED PORT TO 4000
+    const BASE_URL = "http://localhost:4000/"; 
 
-    // Construct Local URLs
+    // 1. Handle Main Thumbnail
     if (req.files?.thumb?.[0]?.filename) {
         thumbUrl = BASE_URL + "uploads/" + req.files.thumb[0].filename;
     }
 
+    // 2. Handle 3D Model
     if (req.files?.glb?.[0]?.filename) {
         glbUrl = BASE_URL + "uploads/" + req.files.glb[0].filename;
+    }
+
+    // 3. Handle Old Structure Photo (NEW)
+    if (req.files?.oldSitePhoto?.[0]?.filename) {
+        oldSiteUrl = BASE_URL + "uploads/" + req.files.oldSitePhoto[0].filename;
+    }
+
+    // 4. Handle New Structure Photo (NEW)
+    if (req.files?.newSitePhoto?.[0]?.filename) {
+        newSiteUrl = BASE_URL + "uploads/" + req.files.newSitePhoto[0].filename;
     }
 
     const doc = new Site({
@@ -40,14 +53,22 @@ exports.createSite = async (req, res, next) => {
       tags: typeof payload.tags === 'string' 
             ? payload.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) 
             : [],
+      
+      // Detailed Info
       history: payload.history || "",
       architecture: payload.architecture || "",
       conservation: payload.conservation || "",
       modernRelevance: payload.modernRelevance || "",
       
-      // Save Local URLs
+      // Comparison Info (NEW)
+      oldStructureDesc: payload.oldStructureDesc || "",
+      newStructureDesc: payload.newStructureDesc || "",
+
+      // Saved URLs
       thumb: thumbUrl, 
-      glb: glbUrl      
+      glb: glbUrl,
+      oldSitePhoto: oldSiteUrl, // (NEW)
+      newSitePhoto: newSiteUrl  // (NEW)
     });
 
     await doc.save();
@@ -87,10 +108,9 @@ exports.getSites = async (req, res, next) => {
   }
 };
 
-/* 3. GET BY ID (Fixed to use _id) */
+/* 3. GET BY ID */
 exports.getSiteById = async (req, res, next) => {
   try {
-    // FIX: Use findById because custom 'id' is gone
     const site = await Site.findById(req.params.id);
     if (!site) return res.status(404).json({ message: 'Site not found' });
     res.json(site);
@@ -99,11 +119,11 @@ exports.getSiteById = async (req, res, next) => {
   }
 };
 
-/* 4. UPDATE SITE (Fixed to use _id & Local Files) */
+/* 4. UPDATE SITE */
 exports.updateSite = async (req, res, next) => {
   try {
     const payload = { ...req.body };
-    const BASE_URL = "http://localhost:3000/"; 
+    const BASE_URL = "http://localhost:4000/"; 
 
     // Update URLs if new files are uploaded
     if (req.files?.thumb?.[0]?.filename) {
@@ -112,8 +132,14 @@ exports.updateSite = async (req, res, next) => {
     if (req.files?.glb?.[0]?.filename) {
         payload.glb = BASE_URL + "uploads/" + req.files.glb[0].filename;
     }
+    // Handle New Comparison Files (NEW)
+    if (req.files?.oldSitePhoto?.[0]?.filename) {
+        payload.oldSitePhoto = BASE_URL + "uploads/" + req.files.oldSitePhoto[0].filename;
+    }
+    if (req.files?.newSitePhoto?.[0]?.filename) {
+        payload.newSitePhoto = BASE_URL + "uploads/" + req.files.newSitePhoto[0].filename;
+    }
 
-    // FIX: Use findByIdAndUpdate
     const updated = await Site.findByIdAndUpdate(
       req.params.id,
       { $set: payload },
@@ -127,7 +153,7 @@ exports.updateSite = async (req, res, next) => {
   }
 };
 
-/* 5. DELETE SITE (Fixed: Deletes Local Files) */
+/* 5. DELETE SITE */
 exports.deleteSite = async (req, res, next) => {
   try {
     const site = await Site.findById(req.params.id);
@@ -146,8 +172,11 @@ exports.deleteSite = async (req, res, next) => {
         });
     };
 
+    // Delete ALL associated files
     deleteLocalFile(site.thumb);
     deleteLocalFile(site.glb);
+    deleteLocalFile(site.oldSitePhoto); // (NEW)
+    deleteLocalFile(site.newSitePhoto); // (NEW)
 
     await Site.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted successfully", id: req.params.id });
