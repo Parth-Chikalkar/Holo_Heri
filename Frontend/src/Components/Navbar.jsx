@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import logo from "../assets/2025.png";
 import { FaPlus } from "react-icons/fa";
 import LoginModal from "./LoginModal";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function NavBar() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const navigate = useNavigate();
@@ -67,11 +70,11 @@ export default function NavBar() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <Link to="/" className="hover:text-yellow-200 transition duration-300 relative group">
-                Home
+                {t('nav.home')}
                 <span className="absolute left-0 bottom-[-5px] w-0 h-[2px] bg-yellow-200 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/sites" className="hover:text-yellow-200 transition duration-300 relative group">
-                Sites
+                {t('nav.sites')}
                 <span className="absolute left-0 bottom-[-5px] w-0 h-[2px] bg-yellow-200 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/about" className="hover:text-yellow-200 transition duration-300 relative group">
@@ -83,13 +86,16 @@ export default function NavBar() {
                 <span className="absolute left-0 bottom-[-5px] w-0 h-[2px] bg-yellow-200 group-hover:w-full transition-all duration-300"></span>
               </Link>
 
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
               {/* Desktop Button with Auth Check */}
               <button 
                 onClick={handleAddSiteClick}
                 className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-red-800 font-semibold px-4 py-2 rounded-full transition duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 <FaPlus className="w-5 h-5" />
-                Add Site
+                {t('nav.addSite')}
               </button>
             </nav>
 
@@ -110,10 +116,10 @@ export default function NavBar() {
           `}
         >
           <Link to="/" onClick={closeMenu} className="block w-full py-3 px-6 text-lg hover:bg-red-600/90 transition duration-200 border-b border-red-800">
-            Home
+            {t('nav.home')}
           </Link>
           <Link to="/sites" onClick={closeMenu} className="block w-full py-3 px-6 text-lg hover:bg-red-600/90 transition duration-200 border-b border-red-800">
-            Sites
+            {t('nav.sites')}
           </Link>
           <Link to="/about" onClick={closeMenu} className="block w-full py-3 px-6 text-lg hover:bg-red-600/90 transition duration-200 border-b border-red-800">
             About
@@ -122,6 +128,11 @@ export default function NavBar() {
             Contact
           </Link>
 
+          {/* Language Switcher Mobile */}
+          <div className="px-6 py-3">
+            <LanguageSwitcher />
+          </div>
+
           {/* Mobile Button with Auth Check */}
           <div className="p-4">
             <button 
@@ -129,7 +140,7 @@ export default function NavBar() {
               className="w-full inline-flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-red-800 font-semibold px-4 py-3 rounded-lg transition duration-300 shadow-md"
             >
               <FaPlus className="w-5 h-5" />
-              Add Site (Visit Now)
+              {t('nav.addSite')}
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Live Filters component
@@ -12,6 +13,7 @@ import { Search } from "lucide-react";
  *  - debounceMs: number (optional) default 180
  */
 export default function Filters({ onSearch = () => {}, debounceMs = 180 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const timer = useRef(null);
 
@@ -62,7 +64,7 @@ export default function Filters({ onSearch = () => {}, debounceMs = 180 }) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for Sites..."
+            placeholder={t('sites.search')}
          
             className="pl-12  pr-4 py-3 w-full sm:rounded-full rounded-l-full shadow-md bg-white text-gray-800
                        focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 sm:border sm:border-gray-200"
@@ -79,7 +81,7 @@ export default function Filters({ onSearch = () => {}, debounceMs = 180 }) {
           whileTap={{ scale: 0.95 }}
           className="px-6 py-3 bg-yellow-600  hover:bg-yellow-700  text-white font-semibold md:rounded-full rounded-r-full shadow-lg"
         >
-          Search
+          {t('sites.searchButton')}
         </motion.button>
       </div>
     </motion.div>

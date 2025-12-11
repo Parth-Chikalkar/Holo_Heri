@@ -1,10 +1,12 @@
 import React from "react";
 import { Link, Play } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { sendPlayCommand } from "../utils/playback";
 import taj from "../assets/demo.png"
 import { useNavigate } from "react-router-dom";
 
 export default function SiteCard({ site }) {
+  const { t } = useTranslation();
   const nav = useNavigate();
 
    const getFileUrl = (path) => {
@@ -82,7 +84,7 @@ export default function SiteCard({ site }) {
                      text-white font-semibold px-6 py-3 rounded-full hover:scale-105 transition hover:cursor-pointer
                      shadow-lg hover:shadow-xl transition-all  ease-in-out border-b-4 border-amber-800"
         >
-          <Play className="w-5 h-5 fill-current" /> <span className="text-base">Open Hologram</span>
+          <Play className="w-5 h-5 fill-current" /> <span className="text-base">{t('sites.viewModel')}</span>
         </button>
 
        

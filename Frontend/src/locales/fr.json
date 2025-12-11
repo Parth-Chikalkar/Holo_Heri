@@ -1,0 +1,111 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "sites": "Sites",
+    "addSite": "Ajouter un Site",
+    "language": "Langue"
+  },
+  "hero": {
+    "title": "Explorez",
+    "titleHighlight": "le Patrimoine Vivant de l'Inde",
+    "subtitle": "Plongez dans des expériences holographiques interactives de sites historiques — visualisez des modèles 3D, lisez des histoires intemporelles et donnez-leur vie avec votre affichage pyramidal.",
+    "ctaExplore": "Explorer les Sites",
+    "ctaLearn": "En Savoir Plus"
+  },
+  "sites": {
+    "title": "Sites Patrimoniaux",
+    "search": "Rechercher des sites...",
+    "searchButton": "Rechercher",
+    "noResults": "Aucun Résultat Trouvé",
+    "noResultsMessage": "Nous n'avons trouvé aucun site patrimonial correspondant à",
+    "showAll": "Afficher tous les sites",
+    "searchHint": "Essayez de rechercher par : Maharashtra, Temple, Mughal, Grotte, Pierre...",
+    "loading": "Chargement des Sites Patrimoniaux...",
+    "viewModel": "Ouvrir l'Hologramme",
+    "location": "Emplacement",
+    "category": "Catégorie"
+  },
+  "upload": {
+    "title": "Télécharger un Site",
+    "siteName": "Nom du Site",
+    "description": "Description",
+    "location": "Emplacement",
+    "category": "Catégorie",
+    "uploadModel": "Télécharger le Modèle 3D",
+    "uploadImage": "Télécharger une Image",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "success": "Site téléchargé avec succès!",
+    "error": "Échec du téléchargement du site"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "signIn": "Se Connecter",
+    "signUp": "S'inscrire",
+    "forgotPassword": "Mot de passe oublié?",
+    "noAccount": "Vous n'avez pas de compte?",
+    "haveAccount": "Vous avez déjà un compte?"
+  },
+  "footer": {
+    "brand": "Holo Heri",
+    "description": "Nous sommes les gardiens du patrimoine numérique. Notre mission est de capturer la majesté, le mystère et l'art détaillé du passé de l'Inde, en le transformant en expériences holographiques interactives et vivantes pour les générations futures.",
+    "navigation": "Navigation",
+    "home": "Accueil",
+    "sacredSites": "Sites Sacrés",
+    "ourStory": "Notre Histoire",
+    "digitalArchive": "Archive Numérique",
+    "resources": "Ressources",
+    "helpCenter": "Centre d'Aide",
+    "privacy": "Politique de Confidentialité",
+    "terms": "Conditions d'Utilisation",
+    "careers": "Carrières",
+    "connect": "Connecter",
+    "email": "Email :",
+    "copyright": "Tous droits réservés."
+  },
+  "filters": {
+    "all": "Tous",
+    "cultural": "Culturel",
+    "natural": "Naturel",
+    "mixed": "Mixte",
+    "sortBy": "Trier Par",
+    "newest": "Plus Récent",
+    "oldest": "Plus Ancien",
+    "nameAZ": "Nom (A-Z)",
+    "nameZA": "Nom (Z-A)"
+  },
+  "viewer": {
+    "loading": "Chargement du modèle 3D...",
+    "notFound": "Site non trouvé.",
+    "historyContext": "Histoire & Contexte",
+    "architecturalHighlights": "Points Forts Architecturaux",
+    "conservationEfforts": "Efforts de Conservation",
+    "modernRelevance": "Pertinence Moderne",
+    "timeTravel": "Voyage dans le Temps :",
+    "thenVsNow": "Avant vs. Maintenant",
+    "past": "PASSÉ",
+    "historicalStructure": "Structure Historique",
+    "noHistoricalPhoto": "Aucune photo historique disponible",
+    "noHistoricalDesc": "Aucune description historique fournie.",
+    "present": "PRÉSENT",
+    "currentState": "État Actuel",
+    "noCurrentPhoto": "Aucune photo actuelle disponible",
+    "noCurrentDesc": "Aucune description actuelle fournie."
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès!",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "yes": "Oui",
+    "no": "Non"
+  }
+}

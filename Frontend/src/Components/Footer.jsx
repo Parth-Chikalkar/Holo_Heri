@@ -1,8 +1,11 @@
 import React from "react";
 import { ArrowUpRight } from "lucide-react"; 
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
+ const { t } = useTranslation();
+ 
  return (
   // 🌟 Using deep red-900 and a subtle yellow border to match the heritage theme
   <footer className="bg-red-900 text-yellow-200 py-12 border-t-4 border-yellow-600 shadow-inner">
@@ -11,61 +14,59 @@ export default function Footer() {
     {/* Column 1: Branding and Amazing Description */}
     <div className="col-span-2 md:col-span-1">
      <h4 className="text-3xl font-serif font-bold text-yellow-400 mb-2 tracking-wider">
-      Holo Heri
+      {t('footer.brand')}
      </h4>
      <p className="text-sm font-light italic text-orange-200 leading-relaxed">
-      We are the custodians of digital heritage. Our mission is to capture the majesty, 
-      mystery, and detailed artistry of India’s past, rendering it into interactive, 
-      living holographic experiences for generations to explore.
+      {t('footer.description')}
      </p>
      <p className="text-xs mt-6 text-yellow-300 opacity-70">
-      &copy; {new Date().getFullYear()} Holo Heri. All rights reserved.
+      &copy; {new Date().getFullYear()} {t('footer.brand')}. {t('footer.copyright')}
      </p>
     </div>
 
         {/* Column 2: Quick Links (Now using <Link>) */}
         <div>
-          <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">Navigation</h5>
+          <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">{t('footer.navigation')}</h5>
           <ul className="text-sm space-y-2">
             <li>
-              <Link to="/" className="hover:text-yellow-400 transition duration-200">Home</Link>
+              <Link to="/" className="hover:text-yellow-400 transition duration-200">{t('footer.home')}</Link>
             </li>
             <li>
-              <Link to="/sites" className="hover:text-yellow-400 transition duration-200">Sacred Sites</Link>
+              <Link to="/sites" className="hover:text-yellow-400 transition duration-200">{t('footer.sacredSites')}</Link>
             </li>
             <li>
-              <Link to="/about" className="hover:text-yellow-400 transition duration-200">Our Story</Link>
+              <Link to="/about" className="hover:text-yellow-400 transition duration-200">{t('footer.ourStory')}</Link>
             </li>
             <li>
-              <Link to="/blog" className="hover:text-yellow-400 transition duration-200">Digital Archive</Link>
+              <Link to="/blog" className="hover:text-yellow-400 transition duration-200">{t('footer.digitalArchive')}</Link>
             </li>
           </ul>
         </div>
 
         {/* Column 3: Resources (Now using <Link>) */}
         <div>
-          <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">Resources</h5>
+          <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">{t('footer.resources')}</h5>
           <ul className="mt-2 text-sm space-y-2">
             <li>
-              <Link to="/support" className="hover:text-yellow-400 transition duration-200">Help Center</Link>
+              <Link to="/support" className="hover:text-yellow-400 transition duration-200">{t('footer.helpCenter')}</Link>
             </li>
             <li>
-              <Link to="/privacy" className="hover:text-yellow-400 transition duration-200">Privacy Policy</Link>
+              <Link to="/privacy" className="hover:text-yellow-400 transition duration-200">{t('footer.privacy')}</Link>
             </li>
             <li>
-              <Link to="/terms" className="hover:text-yellow-400 transition duration-200">Terms of Service</Link>
+              <Link to="/terms" className="hover:text-yellow-400 transition duration-200">{t('footer.terms')}</Link>
             </li>
             <li>
-              <Link to="/careers" className="hover:text-yellow-400 transition duration-200">Careers <ArrowUpRight className="inline w-3 h-3 ml-1"/></Link>
+              <Link to="/careers" className="hover:text-yellow-400 transition duration-200">{t('footer.careers')} <ArrowUpRight className="inline w-3 h-3 ml-1"/></Link>
             </li>
           </ul>
         </div>
 
     {/* Column 4: Contact and Social (Using <a> for external links) */}
     <div>
-     <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">Connect</h5>
+     <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">{t('footer.connect')}</h5>
      <p className="text-sm mb-4">
-           Email: <a href="mailto:holoheriofficial@gmail.com" className="text-yellow-300 hover:text-yellow-100 transition duration-200">holoheriofficial@gmail.com</a>
+           {t('footer.email')} <a href="mailto:holoheriofficial@gmail.com" className="text-yellow-300 hover:text-yellow-100 transition duration-200">holoheriofficial@gmail.com</a>
      </p>
      
      <div className="flex space-x-4 text-2xl">
