@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react"; // Import Loader for loading state
-import { useTranslation } from "react-i18next";
 import Filters from "../Components/Filters";
 import SiteCard from "../Components/SiteCard";
 import Mandala from "../assets/indMan.png";
 import api from "../API/api"; // Import your Axios instance
 
 export default function SitesSection() {
-  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [sites, setSites] = useState([]); // Store fetched sites here
   const [loading, setLoading] = useState(true); // Loading state
@@ -101,7 +99,7 @@ export default function SitesSection() {
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64">
             <Loader2 className="w-12 h-12 text-amber-600 animate-spin mb-4" />
-            <p className="text-amber-800 font-medium">{t('sites.loading')}</p>
+            <p className="text-amber-800 font-medium">Loading Heritage Sites...</p>
           </div>
         ) : (
           <>
@@ -118,23 +116,23 @@ export default function SitesSection() {
               <div className="py-20 flex flex-col items-center text-center">
                 <div className="bg-white/70 backdrop-blur-sm border border-amber-300/50 rounded-2xl p-10 shadow-xl max-w-lg">
                   <h3 className="text-2xl font-bold text-amber-800 mb-2">
-                    {t('sites.noResults')}
+                    No Results Found
                   </h3>
 
                   <p className="text-slate-700 text-sm mb-6">
-                    {t('sites.noResultsMessage')}{" "}
-                    <span className="font-semibold text-amber-700">"{query}"</span>.
+                    We couldn’t find any heritage sites matching{" "}
+                    <span className="font-semibold text-amber-700">“{query}”</span>.
                   </p>
 
                   <button
                     className="px-6 py-2 bg-amber-600 text-white rounded-full hover:bg-amber-700 transition"
                     onClick={() => setQuery("")}
                   >
-                    {t('sites.showAll')}
+                    Show all sites
                   </button>
 
                   <p className="text-xs text-slate-500 mt-4">
-                    {t('sites.searchHint')}
+                    Try searching by: Maharashtra, Temple, Mughal, Cave, Stone…
                   </p>
                 </div>
               </div>

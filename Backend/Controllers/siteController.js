@@ -1,7 +1,6 @@
 const Site = require('../Models/Sites');
 const fs = require('fs');
 const path = require('path');
-const { getLocalizedSite } = require('../Utils/i18nHelper');
 
 // Helper to safely convert numbers
 const toInt = (v, d = 0) => {
@@ -47,27 +46,6 @@ exports.createSite = async (req, res, next) => {
         newSiteUrl = BASE_URL + "uploads/" + req.files.newSitePhoto[0].filename;
     }
 
-    // Parse translations if provided
-    const translations = {};
-    if (payload.translations) {
-      try {
-        const trans = typeof payload.translations === 'string' 
-          ? JSON.parse(payload.translations) 
-          : payload.translations;
-        translations.title = trans.title || {};
-        translations.location = trans.location || {};
-        translations.summary = trans.summary || {};
-        translations.history = trans.history || {};
-        translations.architecture = trans.architecture || {};
-        translations.conservation = trans.conservation || {};
-        translations.modernRelevance = trans.modernRelevance || {};
-        translations.oldStructureDesc = trans.oldStructureDesc || {};
-        translations.newStructureDesc = trans.newStructureDesc || {};
-      } catch (e) {
-        console.warn("Failed to parse translations:", e);
-      }
-    }
-
     const doc = new Site({
       title: payload.title,
       location: payload.location,
@@ -82,18 +60,15 @@ exports.createSite = async (req, res, next) => {
       conservation: payload.conservation || "",
       modernRelevance: payload.modernRelevance || "",
       
-      // Comparison Info
+      // Comparison Info (NEW)
       oldStructureDesc: payload.oldStructureDesc || "",
       newStructureDesc: payload.newStructureDesc || "",
-
-      // Multi-language support
-      translations: translations,
 
       // Saved URLs
       thumb: thumbUrl, 
       glb: glbUrl,
-      oldSitePhoto: oldSiteUrl,
-      newSitePhoto: newSiteUrl
+      oldSitePhoto: oldSiteUrl, // (NEW)
+      newSitePhoto: newSiteUrl  // (NEW)
     });
 
     await doc.save();
@@ -123,16 +98,10 @@ exports.getSites = async (req, res, next) => {
       Site.countDocuments(query)
     ]);
 
-    // Get user's preferred language
-    const lang = req.query.lang || 'en';
-    
-    // Localize all sites
-    const localizedItems = items.map(site => getLocalizedSite(site, lang));
-
     res.json({
       page, limit, total,
       pages: Math.ceil(total / limit),
-      data: localizedItems
+      data: items
     });
   } catch (err) {
     next(err);
@@ -144,17 +113,11 @@ exports.getSiteById = async (req, res, next) => {
   try {
     const site = await Site.findById(req.params.id);
     if (!site) return res.status(404).json({ message: 'Site not found' });
-    
-    // Get user's preferred language
-    const lang = req.query.lang || 'en';
-    
-    // Return localized site
-    const localizedSite = getLocalizedSite(site, lang);
-    res.json(localizedSite);
+    res.json(site);
   } catch (err) {
     next(err);
   }
-};
+};6
 
 /* 4. UPDATE SITE */
 exports.updateSite = async (req, res, next) => {

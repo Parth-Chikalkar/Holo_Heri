@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Sun, Loader2 } from "lucide-react"; 
-import { useTranslation } from "react-i18next";
 import GeometricBackground from "../assets/indMan.png";
 import { useParams } from "react-router-dom";
-import api from "../API/api";
-import TranslatedContent from "./TranslatedContent"; 
+import api from "../API/api"; 
 
 // Wrapper to ensure children (loading bar) render correctly
 const ModelViewer = ({ children, ...props }) => (
@@ -13,11 +11,10 @@ const ModelViewer = ({ children, ...props }) => (
 );
 
 export default function SiteDetails() {
-  const { t } = useTranslation();
   const { id } = useParams(); 
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isDark] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   // ✅ FIX 1: Restore the Helper Function
  const getFileUrl = (path) => {
@@ -61,7 +58,7 @@ export default function SiteDetails() {
     );
   }
 
-  if (!site) return <div className="text-center p-10 text-xl">{t('viewer.notFound')}</div>;
+  if (!site) return <div className="text-center p-10 text-xl">Site not found.</div>;
 
   // --- VARIANTS ---
   const textVariants = {
@@ -81,10 +78,10 @@ export default function SiteDetails() {
 
   // --- DYNAMIC CONTENT SECTIONS ---
   const contentSections = [
-    { title: t('viewer.historyContext'), content: site.history },
-    { title: t('viewer.architecturalHighlights'), content: site.architecture },
-    { title: t('viewer.conservationEfforts'), content: site.conservation },
-    { title: t('viewer.modernRelevance'), content: site.modernRelevance },
+    { title: "History & Context", content: site.history },
+    { title: "Architectural Highlights", content: site.architecture },
+    { title: "Conservation Efforts", content: site.conservation },
+    { title: "Modern Relevance", content: site.modernRelevance },
   ];
 
   return (
@@ -230,9 +227,9 @@ export default function SiteDetails() {
                         className="mb-12 p-6 bg-white/70 rounded-xl shadow-lg border border-yellow-200"
                     >
                         <h3 className="text-2xl font-bold text-red-800 mb-3">{section.title}</h3>
-                        <div className="text-gray-700 leading-relaxed text-justify">
-                            <TranslatedContent content={section.content} />
-                        </div>
+                        <p className="text-gray-700 whitespace-pre-line leading-relaxed text-justify">
+                            {section.content}
+                        </p>
                     </motion.div>
                 )
              ))}
@@ -255,7 +252,7 @@ export default function SiteDetails() {
                 className="text-center mb-16"
             >
                 <h2 className="text-4xl md:text-5xl font-serif font-extrabold text-red-900 mb-4 drop-shadow-sm">
-                    <span className="text-yellow-700">{t('viewer.timeTravel')}</span> {t('viewer.thenVsNow')}
+                    <span className="text-yellow-700">Time Travel:</span> Then vs. Now
                 </h2>
                 <div className="h-1 w-32 bg-gradient-to-r from-yellow-500 to-orange-600 mx-auto rounded-full"></div>
             </motion.div>
@@ -271,7 +268,7 @@ export default function SiteDetails() {
                     className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-gray-500 relative group overflow-hidden"
                 >
                     <div className="absolute top-0 left-0 bg-gray-600 text-white px-6 py-2 rounded-br-2xl font-bold z-20 shadow-md">
-                        {t('viewer.past')}
+                        PAST
                     </div>
                     
                     {/* Image Container with Vintage Sepia Effect */}
@@ -283,14 +280,14 @@ export default function SiteDetails() {
                                 className="w-full h-full object-cover filter sepia contrast-125 group-hover:sepia-0 transition-all duration-700 transform group-hover:scale-110" 
                             />
                         ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 italic">{t('viewer.noHistoricalPhoto')}</div>
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 italic">No Historical Photo Available</div>
                         )}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4 font-serif">{t('viewer.historicalStructure')}</h3>
-                    <div className="text-gray-700 leading-relaxed italic border-l-4 border-gray-300 pl-4">
-                        <TranslatedContent content={site.oldStructureDesc} />
-                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4 font-serif">Historical Structure</h3>
+                    <p className="text-gray-700 leading-relaxed italic border-l-4 border-gray-300 pl-4">
+                        "{site.oldStructureDesc || "No historical description provided."}"
+                    </p>
                 </motion.div>
 
                 {/* 🚀 PRESENT CARD */}
@@ -302,7 +299,7 @@ export default function SiteDetails() {
                     className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-orange-500 relative group overflow-hidden"
                 >
                     <div className="absolute top-0 right-0 bg-orange-600 text-white px-6 py-2 rounded-bl-2xl font-bold z-20 shadow-md">
-                        {t('viewer.present')}
+                        PRESENT
                     </div>
 
                     {/* Image Container */}
@@ -314,14 +311,14 @@ export default function SiteDetails() {
                                 className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-110" 
                             />
                         ) : (
-                            <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-500 italic">{t('viewer.noCurrentPhoto')}</div>
+                            <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-500 italic">No Modern Photo Available</div>
                         )}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-orange-900 mb-4 font-serif">{t('viewer.currentState')}</h3>
-                    <div className="text-gray-700 leading-relaxed border-l-4 border-orange-300 pl-4">
-                        <TranslatedContent content={site.newStructureDesc} />
-                    </div>
+                    <h3 className="text-2xl font-bold text-orange-900 mb-4 font-serif">Current State</h3>
+                    <p className="text-gray-700 leading-relaxed border-l-4 border-orange-300 pl-4">
+                        {site.newStructureDesc || "No modern description provided."}
+                    </p>
                 </motion.div>
 
             </div>

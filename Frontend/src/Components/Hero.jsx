@@ -1,14 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen } from "lucide-react"; 
-import { useTranslation } from "react-i18next";
 import HomeBanner from "../assets/HomeBanner.png"; 
 import Mandala from "../assets/indMan.png" // The imported Mandala image
 import { Link } from "react-router-dom";
 
 export default function Hero() {
-  const { t } = useTranslation();
-  
   // Animation variants for the text content
   const textVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -85,14 +82,15 @@ export default function Hero() {
             className="text-[47px] md:text-6xl lg:text-7xl font-serif font-extrabold text-red-900 leading-tight drop-shadow-md"
             variants={textVariants}
           >
-            <span className="text-yellow-700 ">{t('hero.title')}</span> {t('hero.titleHighlight')}
+            <span className="text-yellow-700 ">Explore</span> India's Living Heritage
           </motion.h1>
 
           <motion.p 
             className="mt-6 text-gray-800 text-lg md:text-xl font-light leading-relaxed"
             variants={textVariants}
           >
-            {t('hero.subtitle')}
+            Delve into interactive holographic experiences for historic sites — view 3D models, 
+            read timeless stories, and bring them to life with your pyramid display.
           </motion.p>
 
           <motion.div 
@@ -106,7 +104,7 @@ export default function Hero() {
               whileHover={{ scale: 1.05, boxShadow: "0px 10px 20px rgba(0,0,0,0.3)" }}
               whileTap={{ scale: 0.95 }}
             >
-              {t('hero.ctaExplore')} <ArrowRight className="ml-2 w-5 h-5" />
+              Explore Sites <ArrowRight className="ml-2 w-5 h-5" />
             </motion.a>
             </Link>
             <Link to='/about'>
@@ -116,7 +114,7 @@ export default function Hero() {
               whileHover={{ scale: 1.05, boxShadow: "0px 10px 20px rgba(0,0,0,0.15)" }}
               whileTap={{ scale: 0.95 }}
             >
-              {t('hero.ctaLearn')} <BookOpen className="ml-2 w-5 h-5" />
+              Learn More <BookOpen className="ml-2 w-5 h-5" />
             </motion.div>
             </Link>
           </motion.div>
