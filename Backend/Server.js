@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
-
+const cultureRoute = require('./Routes/cultureRoute')
 const app = express();
 const PORT = process.env.PORT || 3000; // Make sure this is 3000
 
@@ -45,11 +45,11 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use("/api/holoheri/sites", require("./Routes/siteRoute"));
 app.use("/api/holoheri/users", require("./Routes/userRoute")); 
-
+app.use('/api/holoheri/culture', cultureRoute);
 // --- 5. START SERVER (SINGLE CALL) ---
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
- 
+  
 });
 
 // Set timeout to 10 minutes

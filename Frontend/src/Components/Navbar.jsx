@@ -45,7 +45,7 @@ export default function NavBar() {
         )}
       </AnimatePresence>
 
-      <header className="bg-gradient-to-r from-orange-600 via-amber-500 to-red-600 text-white sticky top-0 z-50 shadow-xl border-b-2 border-amber-700/50">
+      <header className="bg-gradient-to-r z-[100] from-orange-600 via-amber-500 to-red-600 text-white sticky top-0 z-50 shadow-xl border-b-2 border-amber-700/50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-20">
             
@@ -71,7 +71,7 @@ export default function NavBar() {
                 <span className="absolute left-0 bottom-[-5px] w-0 h-[2px] bg-yellow-200 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/sites" className="hover:text-yellow-200 transition duration-300 relative group">
-                Sites
+                Explore
                 <span className="absolute left-0 bottom-[-5px] w-0 h-[2px] bg-yellow-200 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/about" className="hover:text-yellow-200 transition duration-300 relative group">

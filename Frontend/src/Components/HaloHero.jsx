@@ -1,329 +1,222 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Loader2 } from "lucide-react"; 
+import { Moon, Sun, Loader2, ArrowLeft } from "lucide-react"; 
 import GeometricBackground from "../assets/indMan.png";
-import { useParams } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom"; 
 import api from "../API/api"; 
 
-// Wrapper to ensure children (loading bar) render correctly
+// Wrapper to ensure children render correctly
 const ModelViewer = ({ children, ...props }) => (
   <model-viewer {...props}>{children}</model-viewer>
 );
 
 export default function SiteDetails() {
   const { id } = useParams(); 
+  const [searchParams] = useSearchParams();
+  const urlType = searchParams.get("type") || "heritage"; // Initial guess from URL
+
   const [site, setSite] = useState(null);
+  const [actualType, setActualType] = useState(urlType); // Store the REAL type after fetching
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
 
-  // ✅ FIX 1: Restore the Helper Function
- const getFileUrl = (path) => {
+  // URL Helper
+  const getFileUrl = (path) => {
     if (!path) return "";
-
-    // 1. If it's a "localhost:3000" URL from the DB, force it to 4000
-    if (path.includes("localhost:3000")) {
-      return path.replace("3000", "4000");
-    }
-
-    // 2. If it's already a full valid URL (Cloudinary or corrected Local), use it
-    if (path.startsWith("http") || path.startsWith("https")) {
-      return path;
-    }
-
-    // 3. If it's a relative path (e.g. "uploads/file.png"), prepend the Env Variable
-    // This uses the value from Step 1 (http://localhost:4000)
+    if (path.includes("localhost:3000")) return path.replace("3000", "4000");
+    if (path.startsWith("http") || path.startsWith("https")) return path;
     return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/^\//, "")}`;
   };
 
-  // --- FETCH DATA FROM BACKEND ---
+  // --- SMART FETCH DATA (Fixes "Item Not Found") ---
   useEffect(() => {
     const fetchSite = async () => {
+      setLoading(true);
       try {
-        const response = await api.get(`sites/${id}`);
-        setSite(response.data);
+        // 1. Try fetching from the type specified in URL first
+        const primaryEndpoint = urlType === 'culture' ? `culture/${id}` : `sites/${id}`;
+        
+        try {
+            const response = await api.get(primaryEndpoint);
+            setSite(response.data);
+            setActualType(urlType); // Confirm the type is correct
+        } catch (primaryError) {
+            // 2. If 404 (Not Found), try the OTHER endpoint automatically
+            if (primaryError.response && primaryError.response.status === 404) {
+                console.warn(`Not found in ${urlType}, attempting fallback...`);
+                const fallbackType = urlType === 'culture' ? 'heritage' : 'culture';
+                const fallbackEndpoint = fallbackType === 'culture' ? `culture/${id}` : `sites/${id}`;
+                
+                const fallbackResponse = await api.get(fallbackEndpoint);
+                setSite(fallbackResponse.data);
+                setActualType(fallbackType); // Update type to match reality
+            } else {
+                throw primaryError; // If it's a server error (500), throw it
+            }
+        }
       } catch (error) {
-        console.error("Failed to fetch site:", error);
+        console.error("Failed to fetch details:", error);
+        setSite(null);
       } finally {
         setLoading(false);
       }
     };
     if (id) fetchSite();
-  }, [id]);
+  }, [id, urlType]);
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-orange-50">
-        <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <div className="h-screen flex items-center justify-center bg-orange-50"><Loader2 className="w-12 h-12 text-orange-600 animate-spin" /></div>;
+  if (!site) return <div className="text-center p-10 text-xl font-serif text-red-900">Item not found in archive.</div>;
 
-  if (!site) return <div className="text-center p-10 text-xl">Site not found.</div>;
+  // Variants
+  const textVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+  const modelViewerVariants = { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0 } };
+  const rotationVariants = { start: { rotate: 0 }, end: { rotate: 360, transition: { duration: 40, ease: "linear", repeat: Infinity } } };
 
-  // --- VARIANTS ---
-  const textVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 70, damping: 10, staggerChildren: 0.2 } },
-  };
+  // 3. MAP CONTENT DYNAMICALLY (Using actualType)
+  const contentSections = actualType === 'culture' 
+    ? [
+        { title: "Origins & Mythology", content: site.origins },
+        { title: "Technique & Attire", content: site.technique },
+        { title: "Lineage & Community", content: site.lineage },
+        { title: "Cultural Significance", content: site.significance },
+      ]
+    : [
+        { title: "History & Context", content: site.history },
+        { title: "Architectural Highlights", content: site.architecture },
+        { title: "Conservation Efforts", content: site.conservation },
+        { title: "Modern Relevance", content: site.modernRelevance },
+      ];
 
-  const modelViewerVariants = {
-    hidden: { opacity: 0, x: -50, scale: 0.95 },
-    visible: { opacity: 1, x: 0, scale: 1, transition: { type: "spring", stiffness: 70, damping: 10, delay: 0.5 } },
-  };
-
-  const rotationVariants = {
-    start: { rotate: 0 },
-    end: { rotate: 360, transition: { duration: 40, ease: "linear", repeat: Infinity } },
-  };
-
-  // --- DYNAMIC CONTENT SECTIONS ---
-  const contentSections = [
-    { title: "History & Context", content: site.history },
-    { title: "Architectural Highlights", content: site.architecture },
-    { title: "Conservation Efforts", content: site.conservation },
-    { title: "Modern Relevance", content: site.modernRelevance },
-  ];
+  // Theme Colors based on Type
+  const themeColor = actualType === 'culture' ? 'text-pink-900' : 'text-red-900';
+  const highlightColor = actualType === 'culture' ? 'text-pink-700' : 'text-yellow-700';
+  const tagBg = actualType === 'culture' ? 'bg-pink-100 text-pink-800 border-pink-200' : 'bg-orange-100 text-orange-800 border-orange-200';
+  const borderTheme = actualType === 'culture' ? 'border-pink-500' : 'border-amber-500';
 
   return (
-    <section className="bg-gradient-to-br from-yellow-50 to-orange-100 pt-10 relative overflow-hidden min-h-screen">
+    <section className={`pt-10 relative overflow-hidden min-h-screen ${actualType === 'culture' ? 'bg-gradient-to-br from-pink-50 to-rose-100' : 'bg-gradient-to-br from-yellow-50 to-orange-100'}`}>
       
-      {/* 🌟 Rotating Background Element */}
+      {/* Back Button */}
+      <Link to="/sites" className="absolute top-6 left-6 z-50 p-3 bg-white/80 rounded-full hover:bg-white shadow-sm transition hover:scale-110">
+         <ArrowLeft className={`w-6 h-6 ${actualType === 'culture' ? 'text-pink-900' : 'text-amber-900'}`} />
+      </Link>
+
+      {/* Rotating Background */}
       {GeometricBackground && (
         <motion.img
           src={GeometricBackground}
-          alt="Geometric Background Pattern"
-          className="absolute hidden sm:inline-block top-1/2 left-1/2 w-[1900px] h-[1900px] -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
-          style={{ opacity: 0.2 }}
+          alt="Pattern"
+          className="absolute hidden sm:inline-block top-1/2 left-1/2 w-[1900px] h-[1900px] -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none opacity-[0.15]"
           variants={rotationVariants}
           initial="start"
           animate="end"
         />
       )}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/rice-paper.png')" }}></div>
 
-      {/* Rice Paper Texture Overlay */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage:
-            "url('https://www.transparenttextures.com/patterns/rice-paper.png')",
-        }}
-      ></div>
-
-      {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-12 relative z-10 h-[calc(100vh-40px)] overflow-hidden">
+      {/* === MAIN CONTENT GRID === */}
+      <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 relative z-10 h-[calc(100vh-40px)] overflow-hidden">
         
-        {/* === LEFT COLUMN: 3D Model Viewer === */}
-        <motion.div
-          variants={modelViewerVariants}
-          initial="hidden"
-          animate="visible"
-          className="order-1 md:sticky md:top-1 h-fit flex justify-center p-4 md:p-0"
-        >
-          <motion.div
-            className="w-full h-96 md:h-[500px] border-amber-500 border-5 rounded-3xl overflow-hidden flex items-center justify-center p-2 relative"
+        {/* LEFT COLUMN: 3D Model (Fixed) */}
+        <motion.div variants={modelViewerVariants} initial="hidden" animate="visible" className="order-1 md:sticky md:top-1 h-fit flex justify-center p-2 md:p-0">
+          <motion.div 
+            className={`w-full h-96 md:h-[500px] ${borderTheme} border-4 rounded-3xl overflow-hidden flex items-center justify-center p-2 relative shadow-2xl`}
             style={{ maxWidth: "min(100%, 600px)" }}
-            
-            // Dynamic Styles based on isDark state
             animate={{
-              backgroundColor: isDark 
-                ? "rgba(15, 23, 42, 0.8)"   
-                : "rgba(255, 255, 255, 0.5)", 
-              
-                borderColor: isDark 
-                  ? "rgba(234, 179, 8, 0.3)"  
-                  : "rgba(253, 224, 71, 1)",  
-                
-                boxShadow: !isDark
-                  ? "0px 20px 50px -10px rgba(0,0,0,0.9), 0px 0px 30px rgba(234, 179, 8, 0.15)"
-                  : "0px 20px 40px -5px rgba(0,0,0,0.15), 0px 8px 10px -6px rgba(0,0,0,0.1)", 
+              backgroundColor: isDark ? "rgba(15, 23, 42, 0.8)" : "rgba(255, 255, 255, 0.8)",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : undefined,
             }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            
-            {/* Theme Toggle Button */}
-            <motion.button
-              onClick={() => setIsDark(!isDark)}
-              className={`absolute top-4 right-4 z-50 p-2 rounded-full backdrop-blur-md border shadow-md transition-colors duration-300
-                ${isDark 
-                  ? "bg-slate-800/50 border-slate-600 text-yellow-400 hover:bg-slate-700" 
-                  : "bg-white/60 border-yellow-200 text-orange-500 hover:bg-white/80"
-                }`}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.1 }}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={isDark ? "dark" : "light"}
-                  initial={{ y: -20, opacity: 0, rotate: -90 }}
-                  animate={{ y: 0, opacity: 1, rotate: 0 }}
-                  exit={{ y: 20, opacity: 0, rotate: 90 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isDark ? <Moon size={20} /> : <Sun size={20} />}
-                </motion.div>
-              </AnimatePresence>
-            </motion.button>
+            {/* Theme Toggle */}
+            <button onClick={() => setIsDark(!isDark)} className={`absolute top-4 right-4 z-50 p-2 rounded-full backdrop-blur-md shadow-md transition-colors ${isDark ? "bg-slate-800 text-yellow-400" : "bg-white text-orange-500"}`}>
+              {isDark ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
 
-            {/* 3D Model Viewer */}
             <ModelViewer
-              src={getFileUrl(site.glb)}        
-              // ✅ FIX 2: Restore the Poster (Thumbnail)
-              poster={getFileUrl(site.thumb)}   
-              
-              alt={`3D Model of ${site.title}`}
+              src={getFileUrl(site.glb)}
+              poster={getFileUrl(site.thumb)}
+              alt={site.title}
               ar
               ar-modes="webxr scene-viewer quick-look"
               camera-controls
               touch-action="pan-y"
               auto-rotate
-              shadow-intensity={isDark ? "2" : "1"} 
+              shadow-intensity={isDark ? "2" : "1"}
               environment-image="neutral"
               className="w-full h-full"
-              loading="eager" 
+              loading="eager"
               reveal="auto"
             >
-              
-                
+                {/* Progress bar removed here */}
             </ModelViewer>
           </motion.div>
         </motion.div>
 
-        {/* === RIGHT COLUMN: Information Panel === */}
-        <motion.div
-          variants={textVariants}
-          initial="hidden"
-          animate="visible"
-          className="order-2 h-full overflow-y-scroll pl-4 pr-8 custom-scrollbar pb-32"
-        >
-          <motion.h2
-            className="text-4xl md:text-5xl lg:text-6xl font-serif font-extrabold text-red-900 leading-tight drop-shadow-md mb-8 pt-4"
-            variants={textVariants}
-          >
-            <span className="text-yellow-700">{site.title}</span>
-          </motion.h2>
+        {/* RIGHT COLUMN: Info (Scrollable) */}
+        <motion.div variants={textVariants} initial="hidden" animate="visible" className="order-2 h-full overflow-y-scroll pl-2 pr-4 custom-scrollbar pb-32">
+          
+          <h2 className={`text-4xl md:text-5xl font-serif font-extrabold ${themeColor} mb-4 pt-2 leading-tight`}>
+            <span className={highlightColor}>{site.title}</span>
+          </h2>
 
-           {/* Tags */}
-           <motion.div variants={textVariants} className="flex gap-2 flex-wrap mb-6">
-            {site.tags && site.tags.map((tag, i) => (
-                <span key={i} className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-semibold rounded-full border border-orange-200 uppercase tracking-wide">
-                    {tag}
-                </span>
+          <div className="flex gap-2 flex-wrap mb-4">
+            {site.tags?.map((tag, i) => (
+                <span key={i} className={`px-3 py-1 ${tagBg} text-xs font-bold rounded-full border uppercase tracking-wide`}>{tag}</span>
             ))}
-          </motion.div>
+          </div>
 
-          <motion.p
-            className="mt-6 text-gray-800 text-xl font-light leading-relaxed pb-8 border-b border-yellow-300"
-            variants={textVariants}
-          >
+          <p className="text-gray-800 text-lg font-light leading-relaxed pb-6 border-b border-yellow-300">
             {site.summary}
-          </motion.p>
+          </p>
 
-          <div className="pt-8 space-y-12">
+          <div className="pt-6 space-y-8">
             {contentSections.map((section, i) => (
                 section.content && (
-                    <motion.div
-                        key={i}
-                        variants={textVariants}
-                        className="mb-12 p-6 bg-white/70 rounded-xl shadow-lg border border-yellow-200"
-                    >
-                        <h3 className="text-2xl font-bold text-red-800 mb-3">{section.title}</h3>
-                        <p className="text-gray-700 whitespace-pre-line leading-relaxed text-justify">
-                            {section.content}
-                        </p>
+                    <motion.div key={i} className="p-5 bg-white/80 rounded-xl shadow-md border border-yellow-200/50">
+                        <h3 className={`text-xl font-bold ${actualType === 'culture' ? 'text-pink-800' : 'text-red-800'} mb-2`}>{section.title}</h3>
+                        <p className="text-gray-700 leading-relaxed text-justify text-sm whitespace-pre-line">{section.content}</p>
                     </motion.div>
                 )
              ))}
           </div>
 
+          {/* === TIME TRAVEL (HERITAGE ONLY) === */}
+          {actualType === 'heritage' && (site.oldSitePhoto || site.newSitePhoto) && (
+            <div className="mt-8 pt-6 border-t-2 border-dashed border-yellow-400/50">
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl font-serif font-extrabold text-red-900">
+                        <span className="text-yellow-700">Time Travel:</span> Then vs. Now
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {/* PAST */}
+                    <div className="bg-white/90 p-4 rounded-xl shadow-lg border-t-4 border-gray-500 relative">
+                        <div className="absolute -top-3 left-4 bg-gray-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">PAST</div>
+                        <div className="h-40 rounded-lg overflow-hidden mb-3 border border-gray-300 bg-gray-100">
+                            {site.oldSitePhoto ? (
+                                <img src={getFileUrl(site.oldSitePhoto)} className="w-full h-full object-cover filter sepia contrast-125" />
+                            ) : <div className="h-full flex items-center justify-center text-xs text-gray-400">No Photo</div>}
+                        </div>
+                        <p className="text-gray-600 text-xs italic leading-relaxed">"{site.oldStructureDesc || "No description."}"</p>
+                    </div>
+
+                    {/* PRESENT */}
+                    <div className="bg-white/90 p-4 rounded-xl shadow-lg border-t-4 border-orange-500 relative">
+                        <div className="absolute -top-3 right-4 bg-orange-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">PRESENT</div>
+                        <div className="h-40 rounded-lg overflow-hidden mb-3 border border-orange-200 bg-orange-50">
+                            {site.newSitePhoto ? (
+                                <img src={getFileUrl(site.newSitePhoto)} className="w-full h-full object-cover" />
+                            ) : <div className="h-full flex items-center justify-center text-xs text-orange-300">No Photo</div>}
+                        </div>
+                        <p className="text-gray-700 text-xs leading-relaxed">{site.newStructureDesc || "No description."}</p>
+                    </div>
+                </div>
+            </div>
+          )}
+
         </motion.div>
       </div>
-
-      {/* ======================= TIME TRAVEL SECTION ======================= */}
-      {/* Renders only if at least one photo or description exists */}
-      {(site.oldSitePhoto || site.newSitePhoto || site.oldStructureDesc || site.newStructureDesc) && (
-        <div className="max-w-7xl mx-auto px-4 mt-5  mb-10 relative z-10 pb-20">
-            
-            {/* Section Title */}
-            <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="text-center mb-16"
-            >
-                <h2 className="text-4xl md:text-5xl font-serif font-extrabold text-red-900 mb-4 drop-shadow-sm">
-                    <span className="text-yellow-700">Time Travel:</span> Then vs. Now
-                </h2>
-                <div className="h-1 w-32 bg-gradient-to-r from-yellow-500 to-orange-600 mx-auto rounded-full"></div>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-12">
-                
-                {/* ⏳ PAST CARD */}
-                <motion.div 
-                    initial={{ opacity: 0, x: -50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, type: "spring" }}
-                    className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-gray-500 relative group overflow-hidden"
-                >
-                    <div className="absolute top-0 left-0 bg-gray-600 text-white px-6 py-2 rounded-br-2xl font-bold z-20 shadow-md">
-                        PAST
-                    </div>
-                    
-                    {/* Image Container with Vintage Sepia Effect */}
-                    <div className="h-72 rounded-2xl overflow-hidden mb-6 border-4 border-gray-200 group-hover:border-gray-400 transition-colors relative">
-                        {site.oldSitePhoto ? (
-                            <img 
-                                src={getFileUrl(site.oldSitePhoto)} 
-                                alt="Historical View" 
-                                className="w-full h-full object-cover filter sepia contrast-125 group-hover:sepia-0 transition-all duration-700 transform group-hover:scale-110" 
-                            />
-                        ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 italic">No Historical Photo Available</div>
-                        )}
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4 font-serif">Historical Structure</h3>
-                    <p className="text-gray-700 leading-relaxed italic border-l-4 border-gray-300 pl-4">
-                        "{site.oldStructureDesc || "No historical description provided."}"
-                    </p>
-                </motion.div>
-
-                {/* 🚀 PRESENT CARD */}
-                <motion.div 
-                    initial={{ opacity: 0, x: 50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, type: "spring", delay: 0.2 }}
-                    className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-xl border-t-4 border-orange-500 relative group overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 bg-orange-600 text-white px-6 py-2 rounded-bl-2xl font-bold z-20 shadow-md">
-                        PRESENT
-                    </div>
-
-                    {/* Image Container */}
-                    <div className="h-72 rounded-2xl overflow-hidden mb-6 border-4 border-orange-200 group-hover:border-orange-400 transition-colors">
-                        {site.newSitePhoto ? (
-                            <img 
-                                src={getFileUrl(site.newSitePhoto)} 
-                                alt="Modern View" 
-                                className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-110" 
-                            />
-                        ) : (
-                            <div className="w-full h-full bg-orange-100 flex items-center justify-center text-orange-500 italic">No Modern Photo Available</div>
-                        )}
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-orange-900 mb-4 font-serif">Current State</h3>
-                    <p className="text-gray-700 leading-relaxed border-l-4 border-orange-300 pl-4">
-                        {site.newStructureDesc || "No modern description provided."}
-                    </p>
-                </motion.div>
-
-            </div>
-        </div>
-      )}
     </section>
   );
 }

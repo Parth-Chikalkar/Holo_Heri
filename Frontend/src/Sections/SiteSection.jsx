@@ -1,68 +1,75 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useCallback } from "react"; // 1. Import useCallback
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react"; // Import Loader for loading state
+import { Loader2 } from "lucide-react"; 
 import Filters from "../Components/Filters";
 import SiteCard from "../Components/SiteCard";
 import Mandala from "../assets/indMan.png";
-import api from "../API/api"; // Import your Axios instance
+import api from "../API/api"; 
 
 export default function SitesSection() {
-  const [query, setQuery] = useState("");
-  const [sites, setSites] = useState([]); // Store fetched sites here
-  const [loading, setLoading] = useState(true); // Loading state
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false); // Start false, Filters will trigger it
 
+  // --- MAIN FETCH & FILTER LOGIC ---
+  // 2. Wrap the entire function in useCallback
+  const handleSearch = useCallback(async (query, category = "all") => {
+    setLoading(true);
+    try {
+      let fetchedData = [];
 
- 
-  // --- 1. FETCH SITES FROM BACKEND ---
-  useEffect(() => {
-    const fetchSites = async () => {
-      try {
-        
-        const response = await api.get('/sites');
-        
-        // Your controller returns: { page: 1, limit: 12, total: 5, data: [...] }
-        // So we set the 'data' array to our state
-        if (response.data && response.data.data) {
-            setSites(response.data.data);
+      // A. Fetch Heritage Sites
+      if (category === "all" || category === "heritage") {
+        try {
+            const res = await api.get("/sites");
+            const data = res.data.data || res.data;
+            const taggedSites = Array.isArray(data) ? data.map(s => ({ ...s, type: 'heritage' })) : [];
+            fetchedData = [...fetchedData, ...taggedSites];
+        } catch (err) {
+            console.error("Error fetching sites:", err);
         }
-      } catch (error) {
-        console.error("Failed to fetch sites:", error);
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchSites();
-  }, []);
+      // B. Fetch Cultural Forms
+      if (category === "all" || category === "culture") {
+        try {
+            const res = await api.get("/culture");
+            const data = res.data.data || res.data;
+            const taggedCulture = Array.isArray(data) ? data.map(c => ({ ...c, type: 'culture' })) : [];
+            fetchedData = [...fetchedData, ...taggedCulture];
+        } catch (err) {
+            console.warn("Error fetching culture:", err);
+        }
+      }
+
+      // C. Local Filtering
+      if (query) {
+        const q = query.toLowerCase().trim();
+        fetchedData = fetchedData.filter((item) => {
+          const titleMatch = item.title?.toLowerCase().includes(q);
+          const locVal = item.location || item.region || "";
+          const locMatch = locVal.toLowerCase().includes(q);
+          const tagsMatch = Array.isArray(item.tags) && item.tags.some(t => t.toLowerCase().includes(q));
+          
+          return titleMatch || locMatch || tagsMatch;
+        });
+      }
+
+      setResults(fetchedData);
+
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // 3. Empty dependency array ensures this function never changes
+
+  // Note: We REMOVED the useEffect() here because the Filters component
+  // automatically triggers the search once when it mounts.
 
   const rotationVariants = {
     start: { rotate: 0 },
-    end: {
-      rotate: 360,
-      transition: { duration: 40, ease: "linear", repeat: Infinity },
-    },
+    end: { rotate: 360, transition: { duration: 40, ease: "linear", repeat: Infinity } },
   };
-
-  // --- 2. LIVE FILTERING (Updated to use 'sites' state) ---
-  const filteredSites = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    
-    // If no sites loaded yet, return empty
-    if (!sites.length) return [];
-    
-    if (!q) return sites;
-
-    return sites.filter((s) => {
-      // Ensure properties exist before checking (backend data safety)
-      const title = s.title || "";
-      const location = s.location || "";
-      const summary = s.summary || "";
-      const tags = Array.isArray(s.tags) ? s.tags.join(" ") : "";
-
-      const combined = `${title} ${location} ${summary} ${tags}`;
-      return combined.toLowerCase().includes(q);
-    });
-  }, [query, sites]);
 
   return (
     <section
@@ -83,32 +90,35 @@ export default function SitesSection() {
       {/* RICE PAPER TEXTURE */}
       <div
         className="absolute inset-0 opacity-10 pointer-events-none z-0"
-        style={{
-          backgroundImage:
-            "url('https://www.transparenttextures.com/patterns/rice-paper.png')",
-        }}
+        style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/rice-paper.png')" }}
       />
 
       {/* CONTENT */}
       <div className="max-w-7xl mx-auto px-4 relative z-10">
+        
+        {/* FILTERS */}
         <div className="flex justify-between items-center mb-10">
-          <Filters onSearch={(q) => setQuery(q)} />
+          <Filters onSearch={handleSearch} />
         </div>
 
-        {/* 3. LOADING STATE */}
+        {/* LOADING STATE */}
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64">
             <Loader2 className="w-12 h-12 text-amber-600 animate-spin mb-4" />
-            <p className="text-amber-800 font-medium">Loading Heritage Sites...</p>
+            <p className="text-amber-800 font-medium">Loading Archive...</p>
           </div>
         ) : (
           <>
-            {/* 4. RESULTS GRID */}
-            {filteredSites.length > 0 ? (
+            {/* RESULTS GRID */}
+            {results.length > 0 ? (
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                {filteredSites.map((site) => (
-                  // Pass the MongoDB _id as the key
-                  <SiteCard key={site._id} site={site} />
+                {results.map((item) => (
+                  <SiteCard 
+                    key={item._id} 
+                    site={item} 
+                    // Pass the correct viewer link
+                    link={`/viewer/${item._id}?type=${item.type}`}
+                  />
                 ))}
               </div>
             ) : (
@@ -118,22 +128,15 @@ export default function SitesSection() {
                   <h3 className="text-2xl font-bold text-amber-800 mb-2">
                     No Results Found
                   </h3>
-
                   <p className="text-slate-700 text-sm mb-6">
-                    We couldn’t find any heritage sites matching{" "}
-                    <span className="font-semibold text-amber-700">“{query}”</span>.
+                    We couldn’t find any items matching your search.
                   </p>
-
                   <button
                     className="px-6 py-2 bg-amber-600 text-white rounded-full hover:bg-amber-700 transition"
-                    onClick={() => setQuery("")}
+                    onClick={() => handleSearch("", "all")}
                   >
-                    Show all sites
+                    Reset Filters
                   </button>
-
-                  <p className="text-xs text-slate-500 mt-4">
-                    Try searching by: Maharashtra, Temple, Mughal, Cave, Stone…
-                  </p>
                 </div>
               </div>
             )}
