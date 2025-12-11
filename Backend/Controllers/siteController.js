@@ -117,7 +117,7 @@ exports.getSiteById = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
+};6
 
 /* 4. UPDATE SITE */
 exports.updateSite = async (req, res, next) => {
