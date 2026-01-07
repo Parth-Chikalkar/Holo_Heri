@@ -1,13 +1,12 @@
 const Culture = require('../Models/Culture');
+const { uploadToDrive } = require("../Utils/drive"); // Import the Drive helper
 
-// ⚠️ Ensure this matches your running port (4000)
-const BASE_URL = "http://localhost:4000/"; 
-
-/* CREATE CULTURE */
+/* CREATE CULTURE (Google Drive) */
 exports.createCulture = async (req, res, next) => {
   try {
     const payload = req.body;
 
+    // Validation
     if (!payload.title || !payload.category) {
       return res.status(400).json({ message: 'Title and Category are required' });
     }
@@ -15,17 +14,19 @@ exports.createCulture = async (req, res, next) => {
     let thumbUrl = "";
     let glbUrl = "";
 
-    // Handle File Uploads
-    if (req.files?.thumb?.[0]?.filename) {
-        thumbUrl = BASE_URL + "uploads/" + req.files.thumb[0].filename;
+    // 1. Handle Thumbnail Upload to Drive
+    if (req.files?.thumb?.[0]) {
+        thumbUrl = await uploadToDrive(req.files.thumb[0]);
     }
-    if (req.files?.glb?.[0]?.filename) {
-        glbUrl = BASE_URL + "uploads/" + req.files.glb[0].filename;
+
+    // 2. Handle 3D Model Upload to Drive
+    if (req.files?.glb?.[0]) {
+        glbUrl = await uploadToDrive(req.files.glb[0]);
     }
 
     const doc = new Culture({
       title: payload.title,
-      category: payload.category, // 🆕 Save the Category
+      category: payload.category, 
       region: payload.location,   // Maps Frontend 'location' -> DB 'region'
       summary: payload.summary,
       tags: typeof payload.tags === 'string' ? payload.tags.split(',').map(t=>t.trim()) : [],
@@ -36,26 +37,26 @@ exports.createCulture = async (req, res, next) => {
       lineage: payload.conservation || "",   
       significance: payload.modernRelevance || "", 
 
+      // Save the Drive URLs
       thumb: thumbUrl,
       glb: glbUrl
     });
 
     await doc.save();
+    console.log("✅ Culture Created with Drive Files");
     res.status(201).json({ success: true, message: "Cultural Form Saved", data: doc });
 
   } catch (err) {
-    console.error(err);
+    console.error("🔥 Error creating culture:", err);
     res.status(500).json({ message: "Server Error" });
   }
 };
 
 /* GET ALL CULTURES */
-/* GET ALL CULTURES */
 exports.getCultures = async (req, res, next) => {
   try {
-    // 👇 ADD .sort({ createdAt: -1 }) to show newest first
+    // Sort by newest first
     const items = await Culture.find().sort({ createdAt: -1 });
-    
     res.json({ data: items });
   } catch (err) {
     next(err);
@@ -72,4 +73,3 @@ exports.getCultureById = async (req, res, next) => {
     next(err);
   }
 };
-

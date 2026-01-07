@@ -1,19 +1,27 @@
 const multer = require("multer");
 const path = require("path");
 
-// Use memory storage (NO local files)
+/*
+  We use memoryStorage because:
+  - Files are NOT saved locally
+  - Files are uploaded directly to Google Drive
+*/
 const storage = multer.memoryStorage();
 
-// Validate file types
+/*
+  File type validation
+  (Matches your existing logic exactly)
+*/
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
 
   // 3D Models
   if (file.fieldname === "glb") {
     if (![".glb", ".gltf"].includes(ext)) {
-      return cb(new Error("Only .glb or .gltf files are allowed"), false);
+      return cb(new Error("Only .glb or .gltf files are allowed for models"), false);
     }
   }
+
   // Images
   else if (["thumb", "oldSitePhoto", "newSitePhoto"].includes(file.fieldname)) {
     if (!ext.match(/\.(jpg|jpeg|png|webp)$/)) {
@@ -24,7 +32,10 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-// Multer config (200MB max)
+/*
+  Multer config
+  - 200MB max (your requirement)
+*/
 const upload = multer({
   storage,
   limits: {

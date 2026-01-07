@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+
 import {
   Save, FileBox, Image as ImageIcon, MapPin, Tag, BookOpen,
   Clock, PenTool, ShieldCheck, Zap, History, Info, 
@@ -9,6 +11,8 @@ import toast, { Toaster } from "react-hot-toast";
 import Mandala from "../assets/indMan.png";
 import NavBar from "../Components/Navbar";
 import api from "../API/api";
+import UploadLoader from "../Components/UploadLoader";
+
 
 export default function UploadPage() {
   const [selection, setSelection] = useState(null); 
@@ -34,6 +38,8 @@ export default function UploadPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+
+
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     setFiles({ ...files, [e.target.name]: file || null });
@@ -41,10 +47,14 @@ export default function UploadPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
+    if (loading) return;    
 
     setLoading(true);
-    const toastId = toast.loading("Uploading to Archive...");
+   const toastId = toast.loading(
+  selection === "culture"
+    ? "Archiving cultural legacy..."
+    : "Preserving heritage monument..."
+);
 
     try {
       const data = new FormData();
@@ -79,7 +89,9 @@ export default function UploadPage() {
 
       // 4. Send to Correct Endpoint
       const endpoint = selection === 'culture' ? 'culture' : 'sites';
-      const response = await api.post(endpoint, data, { timeout: 600000 });
+      const response = await api.post(endpoint, data, { timeout: 600000 ,  headers: {
+    "Content-Type": "multipart/form-data"
+  } });
 
       if (response.data) {
         toast.success("Uploaded successfully!", { id: toastId });
@@ -107,10 +119,29 @@ export default function UploadPage() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+  const handleBeforeUnload = (e) => {
+    if (loading) {
+      e.preventDefault();
+      e.returnValue = "Upload in progress. Please stay on the page.";
+    }
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+  };
+}, [loading]);
+
 
   // Animation Variants
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
   const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
+  <AnimatePresence>
+  {loading && <UploadLoader type={selection} />}
+</AnimatePresence>
+
 
   return (
     <>
@@ -327,6 +358,7 @@ export default function UploadPage() {
 
                 {/* SUBMIT */}
                 <motion.div variants={itemVariants} className="mt-10 flex justify-end">
+
                     <motion.button
                         whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(234, 88, 12, 0.4)" }}
                         whileTap={{ scale: 0.98 }}

@@ -5,7 +5,6 @@ import Filters from "../Components/Filters";
 import SiteCard from "../Components/SiteCard";
 import Mandala from "../assets/indMan.png";
 import api from "../API/api"; 
-
 export default function SitesSection() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false); // Start false, Filters will trigger it
@@ -40,8 +39,6 @@ export default function SitesSection() {
             console.warn("Error fetching culture:", err);
         }
       }
-
-      // C. Local Filtering
       if (query) {
         const q = query.toLowerCase().trim();
         fetchedData = fetchedData.filter((item) => {

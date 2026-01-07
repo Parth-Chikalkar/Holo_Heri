@@ -2,55 +2,68 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const path = require("path");
-const cultureRoute = require('./Routes/cultureRoute')
+const axios = require('axios');
+const cultureRoute = require('./Routes/cultureRoute');
+const siteRoute = require("./Routes/siteRoute");
+const userRoute = require("./Routes/userRoute");
+
 const app = express();
-const PORT = process.env.PORT || 3000; // Make sure this is 3000
+const PORT = process.env.PORT || 3000;
 
-// --- 1. KILL ZOMBIE PROCESSES ---
-// (If you get EADDRINUSE, change PORT to 3001 or restart computer)
-
-// --- 2. GLOBAL MIDDLEWARE ---
-app.use(express.json({ limit: '200mb' })); 
+// --- GLOBAL MIDDLEWARE ---
+app.use(express.json({ limit: '200mb' }));
 app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
-// Allow API calls from Frontend
 app.use(cors({
-    origin: "http://localhost:5173", // Check your frontend port!
-    credentials: true 
+    origin: "http://localhost:5173",
+    credentials: true
 }));
 
-// --- 3. THE FIX: STATIC FILES WITH FORCED HEADERS ---
-// We attach this function BEFORE express.static to force permissions
-const setHeaders = (req, res, next) => {
-    // A. Allow React to access this file
-    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.header("Access-Control-Allow-Credentials", "true");
-    
-    // B. Tell Model Viewer this is a 3D file (Crucial!)
-    if (req.url.endsWith('.glb')) {
-        res.header('Content-Type', 'model/gltf-binary');
-    }
-    next();
-};
-
-// Apply the headers AND serve the folder
-app.use('/uploads', setHeaders, express.static(path.join(__dirname, 'uploads')));
-
-// --- 4. DATABASE & ROUTES ---
+// --- DATABASE ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.log("❌ MongoDB Error:", err));
 
-app.use("/api/holoheri/sites", require("./Routes/siteRoute"));
-app.use("/api/holoheri/users", require("./Routes/userRoute")); 
-app.use('/api/holoheri/culture', cultureRoute);
-// --- 5. START SERVER (SINGLE CALL) ---
+// --- ROUTES --- // Ensure axios is installed
+
+// --- SIMPLE GOOGLE DRIVE PROXY ---
+app.get('/api/proxy-model', async (req, res) => {
+  const fileId = req.query.id;
+  if (!fileId) return res.status(400).send("No File ID provided");
+
+  try {
+    const driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+    // 1. Fetch the file from Google as a stream
+    const response = await axios({
+      method: 'GET',
+      url: driveUrl,
+      responseType: 'stream'
+    });
+
+    // 2. Pass the headers to the frontend so it knows it's a 3D model
+    res.set({
+      'Content-Type': response.headers['content-type'] || 'application/octet-stream',
+      'Access-Control-Allow-Origin': 'http://localhost:5173', // Must match your React URL
+      'Cache-Control': 'public, max-age=3600', // Cache for speed
+    });
+
+    // 3. Pipe the file data to React
+    response.data.pipe(res);
+
+  } catch (error) {
+    console.error("Proxy Error:", error.message);
+    res.status(500).send("Failed to fetch model.");
+  }
+});
+app.use("/api/holoheri/sites", siteRoute);
+app.use("/api/holoheri/users", userRoute);
+app.use("/api/holoheri/culture", cultureRoute);
+
+// --- START SERVER ---
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Set timeout to 10 minutes
+// Large upload safety
 server.setTimeout(600000);

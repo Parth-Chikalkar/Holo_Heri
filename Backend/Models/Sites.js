@@ -15,7 +15,7 @@ const SiteSchema = new mongoose.Schema({
   conservation: { type: String, default: "" },
   modernRelevance: { type: String, default: "" },
 
-  // -------- NEW COMPARISON ATTRIBUTES --------
+  // -------- NEW COMPARISON ATTRIBUTES ------- 
   
   // 1. Old Structure (Historical View)
   oldSitePhoto: { type: String, default: "" }, // URL to the old photo
