@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export default function Footer() {
  return (
   // 🌟 Using deep red-900 and a subtle yellow border to match the heritage theme
-  <footer className="bg-red-900 text-yellow-200 py-12 border-t-4 border-yellow-600 shadow-inner">
+  <footer className="bg-red-900 text-yellow-200  sm:mt-0 py-12 border-t-4 border-yellow-600 shadow-inner">
    <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
 
     {/* Column 1: Branding and Amazing Description */}
@@ -34,7 +34,7 @@ export default function Footer() {
               <Link to="/sites" className="hover:text-yellow-400 transition duration-200">Sacred Sites</Link>
             </li>
             <li>
-              <Link to="/about" className="hover:text-yellow-400 transition duration-200">Our Story</Link>
+              <Link to="/story" className="hover:text-yellow-400 transition duration-200">Our Story</Link>
             </li>
             <li>
               <Link to="/blog" className="hover:text-yellow-400 transition duration-200">Digital Archive</Link>
@@ -47,7 +47,7 @@ export default function Footer() {
           <h5 className="text-xl font-serif font-semibold text-yellow-500 mb-4 border-b border-yellow-800 pb-1">Resources</h5>
           <ul className="mt-2 text-sm space-y-2">
             <li>
-              <Link to="/support" className="hover:text-yellow-400 transition duration-200">Help Center</Link>
+              <Link to="/about" className="hover:text-yellow-400 transition duration-200">Help Center</Link>
             </li>
             <li>
               <Link to="/privacy" className="hover:text-yellow-400 transition duration-200">Privacy Policy</Link>

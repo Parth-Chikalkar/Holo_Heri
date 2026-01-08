@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const { env } = require('process');
 
 // 1. Helper: Create Token (This was missing in your snippet)
 const createToken = (payload) => {
@@ -42,14 +43,9 @@ exports.loginUser = (req, res) => {
             });
         }
 
-        // B. Load Data & Find User
-        const users = getUsers();
         
-        // Check for exact username AND password match
-        const user = users.find((u) => u.username === username && u.password === password);
-
-        // C. Check Credentials
-        if (!user) {
+        // // C. Check Credentials
+        if (username!== process.env.USER || password!==process.env.PASSWORD) {
             return res.status(401).json({ 
                 success: false, 
                 message: 'Invalid username or password' 
@@ -57,16 +53,14 @@ exports.loginUser = (req, res) => {
         }
 
         // D. Create Token
-        const token = createToken({ username: user.username });
+        const token = createToken({ username});
 
         // E. Send Response
         res.status(200).json({
             success: true,
             message: "Login successful",
             token,
-            user: {
-                username: user.username
-            }
+            
         });
 
     } catch (error) {

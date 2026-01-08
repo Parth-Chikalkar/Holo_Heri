@@ -6,7 +6,7 @@ import logo from "../assets/2025.png";
 import { FaPlus } from "react-icons/fa";
 import LoginModal from "./LoginModal";
 
-export default function NavBar() {
+export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const navigate = useNavigate();

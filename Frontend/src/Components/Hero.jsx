@@ -51,7 +51,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="bg-gradient-to-br from-yellow-50 to-orange-100 py-10 h-[calc(100vh-4rem)] md:py-24 relative overflow-hidden">
+    <section className="bg-gradient-to-br h-full from-yellow-50 to-orange-100 py-10 sm:h-[calc(100vh-4rem)] md:py-24 relative overflow-hidden">
       
       {/* 🌟 Rotating Mandala Background Element */}
       {Mandala && (
