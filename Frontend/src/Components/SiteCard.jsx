@@ -89,7 +89,7 @@ export default function SiteCard({ site, link }) {
                      text-white font-semibold px-6 py-3 rounded-full hover:scale-105 transition hover:cursor-pointer
                      shadow-lg hover:shadow-xl transition-all ease-in-out border-b-4 border-amber-800"
         >
-          <Play className="w-5 h-5 fill-current" /> <span className="text-base">Open Hologram</span>
+          <Play className="w-5 h-5 fill-current" /> <span className="text-base text-2xl">OPEN</span>
         </button>
 
       </div>

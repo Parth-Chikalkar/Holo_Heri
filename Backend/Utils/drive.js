@@ -1,34 +1,23 @@
-const fs = require("fs");
-const path = require("path");
 const { google } = require("googleapis");
 const stream = require("stream");
+require("dotenv").config(); // Load environment variables
 
 // 📁 YOUR FOLDER ID
 const FOLDER_ID = "1_8w1bwm7zzdfgtQbaQ5wQ9kaP-lx1F_m";
 
-const SCOPES = ["https://www.googleapis.com/auth/drive.file"];
-const TOKEN_PATH = path.join(__dirname, "../token.json");
-const CREDENTIALS_PATH = path.join(__dirname, "../credetnialdd.json");
+// Initialize Auth using Environment Variables
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
 
-function authorize() {
-  if (!fs.existsSync(CREDENTIALS_PATH)) {
-    throw new Error("❌ Credentials file not found at " + CREDENTIALS_PATH);
-  }
-  const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
-  const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+// Set the Refresh Token (This allows it to generate new access tokens automatically)
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+});
 
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-
-  if (fs.existsSync(TOKEN_PATH)) {
-    const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
-    oAuth2Client.setCredentials(token);
-    return oAuth2Client;
-  } else {
-    throw new Error("❌ Missing token.json! Run 'generateToken.js' first.");
-  }
-}
-
-const drive = google.drive({ version: "v3", auth: authorize() });
+const drive = google.drive({ version: "v3", auth: oauth2Client });
 
 async function uploadToDrive(file) {
   try {
@@ -37,7 +26,6 @@ async function uploadToDrive(file) {
     const bufferStream = new stream.PassThrough();
     bufferStream.end(file.buffer);
 
-    // 1. Upload the File
     const res = await drive.files.create({
       requestBody: {
         name: file.originalname,
@@ -52,7 +40,6 @@ async function uploadToDrive(file) {
     const fileId = res.data.id;
     console.log("✅ Upload Successful. ID:", fileId);
 
-    // 2. MAKE FILE PUBLIC (Crucial for Frontend)
     await drive.permissions.create({
       fileId: fileId,
       requestBody: {
@@ -62,9 +49,8 @@ async function uploadToDrive(file) {
     });
     console.log("🌍 File is now Public");
 
-    // 3. Return the View Link
-    return `https://drive.google.com/uc?id=${fileId}`; // 'uc' link is best for direct display
-    
+    return `https://drive.google.com/uc?id=${fileId}`; 
+
   } catch (error) {
     console.error("❌ Drive Upload Error:", error.message);
     throw error;
