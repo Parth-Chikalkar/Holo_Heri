@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cultureController = require('../Controllers/cultureController');
-const upload = require('../utils/upload'); // Uses the same upload utility
+const upload = require('../Utils/upload'); // Uses the same upload utility
 
 router.route('/')
   .get(cultureController.getCultures)
