@@ -14,8 +14,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '200mb' }));
 app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
+// ✅ Allow all origins or use specific ENV
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "*", // Change this to process.env.FRONTEND_URL for stricter security later
     credentials: true
 }));
 
@@ -24,7 +25,12 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.log("❌ MongoDB Error:", err));
 
-// --- ROUTES --- // Ensure axios is installed
+// --- ROUTES ---
+
+// ✅ 1. ADD THIS: Root Route to prevent 404 on Homepage
+app.get('/', (req, res) => {
+    res.send("<h1>Server is Running 🚀</h1>");
+});
 
 // --- SIMPLE GOOGLE DRIVE PROXY ---
 app.get('/api/proxy-model', async (req, res) => {
@@ -34,21 +40,18 @@ app.get('/api/proxy-model', async (req, res) => {
   try {
     const driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
-    // 1. Fetch the file from Google as a stream
     const response = await axios({
       method: 'GET',
       url: driveUrl,
       responseType: 'stream'
     });
 
-    // 2. Pass the headers to the frontend so it knows it's a 3D model
     res.set({
       'Content-Type': response.headers['content-type'] || 'application/octet-stream',
-      'Access-Control-Allow-Origin': 'http://localhost:5173', // Must match your React URL
-      'Cache-Control': 'public, max-age=3600', // Cache for speed
+      'Access-Control-Allow-Origin': '*', 
+      'Cache-Control': 'public, max-age=3600',
     });
 
-    // 3. Pipe the file data to React
     response.data.pipe(res);
 
   } catch (error) {
@@ -56,6 +59,7 @@ app.get('/api/proxy-model', async (req, res) => {
     res.status(500).send("Failed to fetch model.");
   }
 });
+
 app.use("/api/holoheri/sites", siteRoute);
 app.use("/api/holoheri/users", userRoute);
 app.use("/api/holoheri/culture", cultureRoute);
@@ -65,5 +69,4 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Large upload safety
 server.setTimeout(600000);
