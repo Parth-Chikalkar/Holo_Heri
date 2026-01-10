@@ -11,8 +11,11 @@ import Contact from './Pages/Contact'
 import Terms from './Pages/Terms'
 import Privacy from './Pages/Privacy'
 import Careers from './Pages/Careers'
+import { GeminiAssistant } from './Components/ai/GeminiAsistant'
   function App() {
     return (
+      <>
+     
       <Routes>
       <Route path='/' element={<HomePage/>}/>
       <Route path='/sites' element={<SitesPage/>}/>
@@ -28,6 +31,8 @@ import Careers from './Pages/Careers'
        
 
       </Routes>
+      <GeminiAssistant/>
+       </>
     )
   }
 

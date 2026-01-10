@@ -6,7 +6,7 @@ const axios = require('axios');
 const cultureRoute = require('./Routes/cultureRoute');
 const siteRoute = require("./Routes/siteRoute");
 const userRoute = require("./Routes/userRoute");
-
+const aiRoute = require("./Routes/aiRoutes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -63,7 +63,7 @@ app.get('/api/proxy-model', async (req, res) => {
 app.use("/api/holoheri/sites", siteRoute);
 app.use("/api/holoheri/users", userRoute);
 app.use("/api/holoheri/culture", cultureRoute);
-
+app.use("/api/holoheri/ai",aiRoute);
 // --- START SERVER ---
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

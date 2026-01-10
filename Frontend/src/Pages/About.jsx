@@ -4,6 +4,7 @@ import { Scroll, Users, Globe, Target } from "lucide-react";
 import Mandala from "../assets/indMan.png"; // Ensure this path is correct
 import NavBar from "../Components/Navbar";
 import Navbar from "../Components/Navbar";
+import { GeminiAssistant } from "../Components/ai/GeminiAsistant";
 
 const About = () => {
   // Animation Variants
@@ -47,6 +48,7 @@ const About = () => {
   return (
     <>
     <Navbar/>
+    
  
     <section className="relative min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 py-20 overflow-hidden">
       
