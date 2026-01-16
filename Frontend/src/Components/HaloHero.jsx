@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Moon, Sun, Loader2, ArrowLeft, AlertCircle } from "lucide-react"; 
+import { Moon, Sun, Loader2, ArrowLeft, AlertCircle, Info } from "lucide-react"; 
 import GeometricBackground from "../assets/indMan.png";
 import { useParams, Link, useSearchParams } from "react-router-dom"; 
 import api from "../API/api"; 
@@ -19,7 +19,11 @@ export default function SiteDetails() {
   const [actualType, setActualType] = useState(urlType); 
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  const [modelError, setModelError] = useState(false); // Track if model fails to load
+  const [modelError, setModelError] = useState(false); 
+
+  // --- NEW STATES FOR HOTSPOTS ---
+  const [showHotspots, setShowHotspots] = useState(false);
+  const [activeHotspot, setActiveHotspot] = useState(null);
 
   // --- 1. BASE URL HELPER ---
   const getFileUrl = (path) => {
@@ -29,7 +33,7 @@ export default function SiteDetails() {
     return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/^\//, "")}`;
   };
 
-  // --- 2. IMAGE FIXER (For Posters/Photos) ---
+  // --- 2. IMAGE FIXER ---
   const getVisibleImage = (path) => {
     const url = getFileUrl(path);
     if (!url) return "";
@@ -42,28 +46,18 @@ export default function SiteDetails() {
     return url;
   };
 
-  // --- 3. MODEL URL FIXER (SPECIFIC FOR GLB FILES) ---
-// --- 3. MODEL URL FIXER (Connects to Proxy) ---
+  // --- 3. MODEL URL FIXER ---
   const getModelUrl = (path) => {
-    // Basic safety check
     if (!path) return "";
-    
-    // Check if it is a Google Drive Link
     if (path.includes("drive.google.com") && path.includes("id=")) {
       try {
-        // Extract the ID from the messy URL
         const id = path.split("id=")[1].split("&")[0];
-        
-        // CRITICAL CHANGE: Return the link to YOUR backend, not Google
         return `${import.meta.env.VITE_API_BASE_URL}/api/proxy-model?id=${id}`;
-        
       } catch (e) {
         console.error("Error parsing Drive ID", e);
         return path;
       }
     }
-
-    // Fallback for other links
     if (path.startsWith("http")) return path;
     return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/^\//, "")}`;
   };
@@ -96,6 +90,21 @@ export default function SiteDetails() {
     if (id) fetchSite();
   }, [id, urlType]);
 
+  // Handle Hotspot Clicks
+  const handleHotspotClick = (index, event) => {
+    event.stopPropagation(); // Prevent model rotation
+    if (activeHotspot === index) {
+      setActiveHotspot(null); // Close if already open
+    } else {
+      setActiveHotspot(index); // Open new one
+    }
+  };
+
+  // Close annotations when clicking background
+  const handleBackgroundClick = () => {
+    setActiveHotspot(null);
+  };
+
   if (loading) return <div className="h-screen flex items-center justify-center bg-orange-50"><Loader2 className="w-12 h-12 text-orange-600 animate-spin" /></div>;
   if (!site) return <div className="text-center p-10 text-xl font-serif text-red-900">Item not found in archive.</div>;
 
@@ -103,7 +112,6 @@ export default function SiteDetails() {
   const modelViewerVariants = { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0 } };
   const rotationVariants = { start: { rotate: 0 }, end: { rotate: 360, transition: { duration: 40, ease: "linear", repeat: Infinity } } };
   
-  // Content Mapping
   const contentSections = actualType === 'culture' 
     ? [ { title: "Origins & Mythology", content: site.origins }, { title: "Technique & Attire", content: site.technique }, { title: "Lineage & Community", content: site.lineage }, { title: "Cultural Significance", content: site.significance } ]
     : [ { title: "History & Context", content: site.history }, { title: "Architectural Highlights", content: site.architecture }, { title: "Conservation Efforts", content: site.conservation }, { title: "Modern Relevance", content: site.modernRelevance } ];
@@ -114,8 +122,80 @@ export default function SiteDetails() {
   const borderTheme = actualType === 'culture' ? 'border-pink-500' : 'border-amber-500';
 
   return (
-    <section className={`pt-10 relative overflow-hidden min-h-screen ${actualType === 'culture' ? 'bg-gradient-to-br from-pink-50 to-rose-100' : 'bg-gradient-to-br from-yellow-50 to-orange-100'}`}>
+    <section className={`pt-10 relative overflow-hidden min-h-screen ${actualType === 'culture' ? 'bg-gradient-to-br from-pink-50 to-rose-100' : 'bg-gradient-to-br from-yellow-50 to-orange-100'}`} onClick={handleBackgroundClick}>
       
+      {/* UPDATED STYLES FOR HOTSPOTS & ANNOTATIONS */}
+      <style>{`
+        .Hotspot {
+          background: #ffffff;
+          border-radius: 50%;
+          width: 12px;
+          height: 12px;
+          border: 2px solid #007bff;
+          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          transition: all 0.3s ease;
+          display: block;
+          position: relative;
+          opacity: 0.5;
+        }
+        .Hotspot.hidden {
+          display: none;
+        }
+        .Hotspot:hover, .Hotspot.active {
+          transform: scale(1.3);
+          opacity: 1;
+          border-color: #0056b3;
+          z-index: 10;
+        }
+
+        /* --- REDUCED ANNOTATION SIZE --- */
+        .HotspotAnnotation {
+          display: none;
+          background: #ffffff;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          
+          /* Reduced Padding */
+          padding: 8px 10px;
+          
+          position: absolute;
+          
+          /* Reduced Width */
+          width: 180px;
+          
+          left: 20px;
+          top: -10px;
+          color: #333;
+          line-height: 1.3;
+          z-index: 100;
+          pointer-events: auto;
+          text-align: left;
+          font-family: 'Segoe UI', sans-serif;
+        }
+        
+        /* Tablet/Desktop Width */
+        @media (min-width: 600px) {
+           .HotspotAnnotation { width: 220px; }
+        }
+
+        .Hotspot.active .HotspotAnnotation {
+          display: block;
+        }
+        
+        /* Reduced Font Sizes */
+        .HotspotAnnotation h3 {
+          margin: 0 0 4px 0;
+          font-size: 13px; /* Smaller header */
+          color: #007bff;
+          font-weight: bold;
+        }
+        .HotspotAnnotation p {
+          margin: 0;
+          font-size: 11px; /* Smaller text */
+        }
+      `}</style>
+
       <Link to="/sites" className="absolute top-6 left-6 z-50 p-3 bg-white/80 rounded-full hover:bg-white shadow-sm transition hover:scale-110">
          <ArrowLeft className={`w-6 h-6 ${actualType === 'culture' ? 'text-pink-900' : 'text-amber-900'}`} />
       </Link>
@@ -137,11 +217,21 @@ export default function SiteDetails() {
               borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : undefined,
             }}
           >
+            {/* Theme Toggle */}
             <button onClick={() => setIsDark(!isDark)} className={`absolute top-4 right-4 z-50 p-2 rounded-full backdrop-blur-md shadow-md transition-colors ${isDark ? "bg-slate-800 text-yellow-400" : "bg-white text-orange-500"}`}>
               {isDark ? <Moon size={20} /> : <Sun size={20} />}
             </button>
             
-            {/* Error Message if Model Fails */}
+            {/* Toggle Info Points Button */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); setShowHotspots(!showHotspots); }}
+                className="absolute top-4 left-4 z-50 px-3 py-2 rounded-md backdrop-blur-md shadow-md transition-colors bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 flex items-center gap-2"
+            >
+                <Info size={16} />
+                
+            </button>
+
+            {/* Error Message */}
             {modelError && (
                 <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/10 backdrop-blur-sm p-6 text-center">
                     <AlertCircle className="w-10 h-10 text-red-600 mb-2" />
@@ -153,31 +243,131 @@ export default function SiteDetails() {
             )}
 
             <ModelViewer
-              // 4. USE THE MODEL URL FIXER
               src={getModelUrl(site.glb)}
               poster={getVisibleImage(site.thumb)}
               alt={site.title}
-              
-              // 5. CRITICAL: Allow cross-origin requests
               crossorigin="anonymous"
-              
               ar
               ar-modes="webxr scene-viewer quick-look"
               camera-controls
               touch-action="pan-y"
-              auto-rotate
+              auto-rotate 
               shadow-intensity={isDark ? "2" : "1"}
               environment-image="neutral"
               className="w-full h-full"
               loading="eager"
               reveal="auto"
-              
-              // 6. LOG ERRORS to see what's wrong
               onError={(e) => {
                   console.error("Model Load Error:", e);
                   setModelError(true);
               }}
             >
+                {/* --- HOTSPOTS --- */}
+                
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 1 ? 'active' : ''}`} 
+                    slot="hotspot-1" 
+                    data-position="0.11996549136712897m -0.660297867924796m -4.4235828999931535m" 
+                    data-normal="-0.947823850017628m 0.25515014115177137m 0.1911239252631453m"
+                    onClick={(e) => handleHotspotClick(1, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Main Tower (Vimana)</h3>
+                        <p>Principal shrine of the temple housing the main deity. Tallest structure, symbolizing Mount Meru.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 2 ? 'active' : ''}`} 
+                    slot="hotspot-2" 
+                    data-position="1.036577382153329m -0.5674720091017866m -4.416159482058665m" 
+                    data-normal="0.9401525064778996m 0.2853078229403957m 0.18631347437137996m"
+                    onClick={(e) => handleHotspotClick(2, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Main Tower (Vimana)</h3>
+                        <p>Principal shrine of the temple housing the main deity. Tallest structure, symbolizing Mount Meru.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 3 ? 'active' : ''}`} 
+                    slot="hotspot-3" 
+                    data-position="0.8600527644693159m -1.810127178146242m -3.6297291483192353m" 
+                    data-normal="0.9944476538041479m 0.09018357827068177m -0.054229014869548106m"
+                    onClick={(e) => handleHotspotClick(3, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Subsidiary Towers</h3>
+                        <p>Smaller supporting towers surrounding the main shrine. Follow the traditional Kalinga temple layout.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 5 ? 'active' : ''}`} 
+                    slot="hotspot-5" 
+                    data-position="-0.37826918008487875m -1.7633185397736653m -4.344624581895653m" 
+                    data-normal="-0.9775031129394942m 0.10297211283885144m 0.1840771799303251m"
+                    onClick={(e) => handleHotspotClick(5, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Subsidiary Towers</h3>
+                        <p>Smaller supporting towers surrounding the main shrine. Follow the traditional Kalinga temple layout.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 7 ? 'active' : ''}`} 
+                    slot="hotspot-7" 
+                    data-position="0.8542837741519639m -1.957261798408358m -1.2470051002202132m" 
+                    data-normal="-0.07848740415918834m 0.4769908079952241m 0.8753967651736072m"
+                    onClick={(e) => handleHotspotClick(7, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Jagamohana (Assembly Hall)</h3>
+                        <p>Congregational hall where devotees gather for worship. Located between the entrance and the main shrine.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 9 ? 'active' : ''}`} 
+                    slot="hotspot-9" 
+                    data-position="-0.507225121310278m -2.125322541126483m -2.015098956156416m" 
+                    data-normal="-0.9068184247570564m 0.4181626190721036m 0.05310714200453255m"
+                    onClick={(e) => handleHotspotClick(9, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Jagamohana (Assembly Hall)</h3>
+                        <p>Congregational hall where devotees gather for worship. Located between the entrance and the main shrine.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 10 ? 'active' : ''}`} 
+                    slot="hotspot-10" 
+                    data-position="0.5187906325037172m -3.7098099554956656m -0.5154049424781284m" 
+                    data-normal="0.01908744330093676m 0.2493435412024196m 0.968226971308314m"
+                    onClick={(e) => handleHotspotClick(10, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Temple Entrance</h3>
+                        <p>Ceremonial gateway aligned with the sun’s path. Marks the formal entry into the temple complex.</p>
+                    </div>
+                </button>
+
+                <button 
+                    className={`Hotspot ${!showHotspots ? 'hidden' : ''} ${activeHotspot === 12 ? 'active' : ''}`} 
+                    slot="hotspot-12" 
+                    data-position="0.5360795957505438m -3.453914319217133m -4.229035932376426m" 
+                    data-normal="0.008220999659640823m 0.03487495039243339m 0.9993578703346073m"
+                    onClick={(e) => handleHotspotClick(12, e)}
+                >
+                    <div className="HotspotAnnotation">
+                        <h3>Dedicated to Surya</h3>
+                        <p>The temple is dedicated to Surya, the Hindu Sun God. Surya is worshipped as the source of life.</p>
+                    </div>
+                </button>
+
             </ModelViewer>
           </motion.div>
         </motion.div>
@@ -213,14 +403,14 @@ export default function SiteDetails() {
                     <div className="bg-white/90 p-4 rounded-xl shadow-lg border-t-4 border-gray-500 relative">
                         <div className="absolute -top-3 left-4 bg-gray-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">PAST</div>
                         <div className="h-40 rounded-lg overflow-hidden mb-3 border border-gray-300 bg-gray-100">
-                            {site.oldSitePhoto ? <img src={getVisibleImage(site.oldSitePhoto)} referrerPolicy="no-referrer" className="w-full h-full object-cover filter sepia contrast-125" /> : <div className="h-full flex items-center justify-center text-xs text-gray-400">No Photo</div>}
+                            {site.oldSitePhoto ? <img src={getVisibleImage(site.oldSitePhoto)} referrerPolicy="no-referrer" className="w-full h-full object-cover filter sepia contrast-125" alt="Past" /> : <div className="h-full flex items-center justify-center text-xs text-gray-400">No Photo</div>}
                         </div>
                         <p className="text-gray-600 text-xs italic leading-relaxed">"{site.oldStructureDesc || "No description."}"</p>
                     </div>
                     <div className="bg-white/90 p-4 rounded-xl shadow-lg border-t-4 border-orange-500 relative">
                         <div className="absolute -top-3 right-4 bg-orange-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">PRESENT</div>
                         <div className="h-40 rounded-lg overflow-hidden mb-3 border border-orange-200 bg-orange-50">
-                            {site.newSitePhoto ? <img src={getVisibleImage(site.newSitePhoto)} referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-xs text-orange-300">No Photo</div>}
+                            {site.newSitePhoto ? <img src={getVisibleImage(site.newSitePhoto)} referrerPolicy="no-referrer" className="w-full h-full object-cover" alt="Present" /> : <div className="h-full flex items-center justify-center text-xs text-orange-300">No Photo</div>}
                         </div>
                         <p className="text-gray-700 text-xs leading-relaxed">{site.newStructureDesc || "No description."}</p>
                     </div>
