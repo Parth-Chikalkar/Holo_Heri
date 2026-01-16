@@ -32,6 +32,11 @@ app.get('/', (req, res) => {
     res.send("<h1>Server is Running 🚀</h1>");
 });
 
+// Cron-job
+app.get('/api/holoheri/health',(req,res)=>{
+  return res.json({message :"ok", sucess : true});
+})
+
 // --- SIMPLE GOOGLE DRIVE PROXY ---
 app.get('/api/proxy-model', async (req, res) => {
   const fileId = req.query.id;
